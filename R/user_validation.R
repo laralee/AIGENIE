@@ -615,3 +615,100 @@ validate_user_input_local_GENIE <- function(
     all.together = all.together
   ))
 }
+
+
+
+validate_chat_params <- function(prompts, model,
+                                 system.role,
+                                 openai.API,
+                                 hf.token,
+                                 groq.API,
+                                 anthropic.API,
+                                 reps,
+                                 top.p,
+                                 temperature,
+                                 max.tokens,
+                                 silently){
+
+  # Check bools and strings
+  validate_booleans(silently)
+  validate_strings(openai.API, hf.token, groq.API, anthropic.API)
+
+  # Check if the user forgot to add their API keys if using example code
+  check_for_default_APIs(hf.token, groq.API, openai.API, anthropic.API, jina.API="pls ignore")
+
+
+  # Validate the `model` string and replace it with a valid model string if necessary
+  model_info <- normalize_model_name(model, groq.API, openai.API,
+                                     anthropic.API = anthropic.API, silently = silently)
+  model <- model_info$model
+
+  # Validate LLM parameters
+  temperature_validate(temperature)
+  top.p_validate(top.p)
+
+  # Check that the tokens set is reasonable
+  max.tokens <- max.tokens_validate(max.tokens, silently)
+
+  # Check that reps is an integer
+  reps <- validate_reps(reps)
+
+  # Check the system role and the prompts
+  final_check <- validate_system.role_prompts(system.role, prompts)
+  prompts <- final_check$prompts
+  system.role <- final_check$system.role
+
+  return(list(prompts = prompts,
+              system.role = system.role,
+              reps = reps,
+              max.tokens = max.tokens,
+              model = model))
+
+}
+
+
+
+
+validate_local_chat_params <- function(prompts, model.path,
+                                       n.ctx,
+                                       n.gpu.layers,
+                                       max.tokens,
+                                       system.role,
+                                       reps,
+                                       temperature,
+                                       top.p,
+                                       silently){
+
+  # Check the silently bool
+  validate_booleans(silently)
+
+  # Validate LLM parameters
+  top.p_validate(top.p)
+  temperature_validate(temperature)
+
+  # Check the model path for downloaded model
+  model.path <- validate_model.path(model.path, silently)
+
+  # Check that the tokens set is reasonable
+  max.tokens <- max.tokens_validate(max.tokens, silently)
+
+  # Check that reps is an integer
+  reps <- validate_reps(reps)
+
+  # Validate local LLM specific parameters
+  llm_params <- validate_local_llm_params(n.ctx, n.gpu.layers, max.tokens)
+
+  # Check the system role and the prompts
+  final_check <- validate_system.role_prompts(system.role, prompts)
+  prompts <- final_check$prompts
+  system.role <- final_check$system.role
+
+  return(list(
+    prompts = prompts,
+    system.role = system.role,
+    reps = reps,
+    max.tokens = max.tokens,
+    model.path = model.path
+    ))
+
+}

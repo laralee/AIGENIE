@@ -1874,3 +1874,630 @@ local_GENIE <- function(
   return(build_return(item_level, overall_result,
                       run.overall, keep.org = FALSE))
 }
+
+
+
+#' Chat with an LLM via API Calls
+#'
+#' Send one or more prompts to a remote large-language model (LLM) using the
+#' appropriate provider API (OpenAI, Hugging Face, Groq, or Anthropic). A valid
+#' API key for at least one provider is required. To use a local model
+#' (no API call), see `local_chat()`.
+#'
+#' @param prompts A character string or character vector. The main prompt(s)
+#'   given to the model. If multiple prompts are supplied, each will be sent
+#'   separately to the model.
+#' @param model A character string specifying the LLM model name (e.g.,
+#'   `"gpt4o"`). The model must correspond to the API key provided.
+#' @param system.role A character string or character vector, default `NULL`.
+#'   The system role(s) (model persona). If only one system role is provided
+#'   and multiple prompts are supplied, the same role will be used for each
+#'   prompt. If multiple system roles are provided, they should align with
+#'   the prompts.
+#' @param openai.API A character string, default `NULL`. Your OpenAI API
+#'   key (required when using an OpenAI model).
+#' @param hf.token A character string, default `NULL`. Your Hugging Face
+#'   token (required when using a Hugging Face-hosted model).
+#' @param groq.API A character string, default `NULL`. Your Groq API key
+#'   (required when using a Groq-hosted model).
+#' @param anthropic.API A character string, default `NULL`. Your
+#'   Anthropic API key (required when using an Anthropic model).
+#' @param reps Integer, default `1`. The number of times each prompt will be
+#'   given to the model.
+#' @param top.p Numeric, default `1`. Top-p (nucleus) sampling parameter.
+#' @param temperature Numeric, default `1`. Sampling temperature controlling
+#'   response randomness.
+#' @param max.tokens Integer, default `2048L`. Maximum number of tokens
+#'   requested from the model.
+#' @param silently Logical, default `FALSE`. If `FALSE`, progress messages
+#'   are printed. If `TRUE`, the function runs quietly.
+#'
+#' @return A `data.frame` with one row per API call (i.e., per prompt × repetition)
+#'   containing:
+#'   \itemize{
+#'     \item `rep` — repetition index
+#'     \item `prompt` — the prompt text sent to the model
+#'     \item `response` — the raw text response returned by the model
+#'   }
+#'
+#' @details
+#' The function includes a retry mechanism (up to 5 attempts) for transient API
+#' failures. If all attempts fail, the function stops with an informative error.
+#'
+#' @section Important:
+#' This function requires a valid API key corresponding to the selected model.
+#' Network access is required. For local (non-API) models, use `local_chat()`.
+#'
+#' @examples
+#' \dontrun{
+#' #################################################
+#' ### Example 1: Writing a Very Basic Prompt  #####
+#' #################################################
+#'
+#' # First, define your API key
+#' key <- "INSERT YOUR KEY HERE"
+#' # Then, define your LLM model. This model should correspond to your API key.
+#' model <- "gpt4o" # in this example, you would need an OpenAI API key.
+#'
+#' # Then, write your prompt. This will be given to the model directly.
+#' prompt <- "Why does the planet Saturn have rings? Give a 100 word explanation."
+#'
+#' # Optionally, add a system role (a model persona)
+#' system.role <- "You specialize in tutoring astronomy for high school students."
+#'
+#' # Add the number of prompt repetitions. By default, this is set to 1. But it
+#' # may bu useful to increase the number of repetitions to get a sense of how
+#' # consistent your output might be.
+#' reps <- 3
+#'
+#' # Now you are ready to chat with an LLM
+#' first_chat <- chat(
+#'   # Set your own API key. If you are not using OpenAI, change the 1st
+#'   # argument to match your API key. Choices are `hf.token`, `groq.API`,
+#'   # `anthropic.API`, and `openai.API`. In this example, I'm using
+#'   # `openai.API` since I want to chat with a GPT model.
+#'   openai.API = key,
+#'   model = model, # Ensure your model corresponds to your API key.
+#'   prompts = prompt,
+#'   system.role = system.role,
+#'   reps = reps
+#' )
+#'
+#' # Check how the output changes from iteration to iteration
+#' first_chat$response[[1]] # first iteration output
+#' first_chat$response[[2]] # second iteration output
+#' first_chat$response[[2]] # third iteration output
+#'
+#'
+#' ####################################################################
+#' ### Example 2: Send multiple prompts in a single function call #####
+#' ####################################################################
+#'
+#' # You are also able to send more than one prompt in a single call
+#' # Let's pull the first prompt from Example 1:
+#' prompt1 <- "Why does the planet Saturn have rings? Give a 100 word explanation."
+#' prompt2 <- "Which planet is the hottest in our solar system? How do we know?"
+#'
+#' # Aggregate the prompts in a single object
+#' prompts <- c(prompt1, prompt2)
+#'
+#' # Ask the model the questions
+#' second_chat <- chat(
+#'   openai.API = key, # defined in Example 1
+#'   model = model, # defined in Example 1
+#'   prompts = prompts, # NEW
+#'   system.role = system.role, # defined in Example 1
+#'   reps = reps # defined in Example 1
+#' )
+#'
+#' # The outputted data frame for this example will have 6 rows
+#' # since the number of prompts (2) times the number of reps (3)
+#' # gives a total of 6 API calls.
+#' second_chat$response[second_chat$prompt==prompt1] # the responses from prompt 1
+#' second_chat$response[second_chat$prompt==prompt2] # the responses from prompt 2
+#'
+#'
+#' ####################################################################
+#' ### Example 3: Send multiple prompts with different System Roles ###
+#' ####################################################################
+#'
+#' # Perhaps your prompts are not related. In that case, you would probably want
+#' # to set a different system role for each prompt.
+#' # Let's change `prompt 2` to be entirely unrelated to astronomy.
+#' prompt2 <- "What is the difference between eukaryotes and prokaryotes? Why?"
+#'
+#' # This new second prompt does not fit with the astronomy tutor persona. Let's
+#' # write a persona to match this new prompt topic.
+#' system.role2 <- "You specialize in tutoring biology for middle school students."
+#'
+#' # Now, let's combine the system roles into a single object
+#' system.role <- c(system.role, # defined in Example 1: the astronomy tutor
+#'                  system.role2 # defined above: the biology tutor
+#'                  )
+#'
+#' # Aggregate our prompts in a single object again
+#' prompts <- c(prompt1, # Asks about Saturn's rings (needs astronomy tutor)
+#'              prompt2 # Asks about types of cells (needs biology tutor)
+#'              )
+#'
+#' # Ask the model the questions
+#' third_chat <- chat(
+#'   openai.API = key, # defined in Example 1
+#'   model = model, # defined in Example 1
+#'   prompts = prompts, # NEW
+#'   system.role = system.role, # NEW
+#'   reps = reps # defined in Example 1
+#' )
+#'
+#' # View the outputted data frame to examine the responses
+#' View(third_chat)
+#' }
+#'
+#' @seealso \code{\link{local_chat}}
+#' @export
+chat <- function(prompts, model,
+                 system.role = NULL,
+                 openai.API = NULL,
+                 hf.token = NULL,
+                 groq.API = NULL,
+                 anthropic.API = NULL,
+                 reps = 1,
+                 top.p = 1,
+                 temperature = 1,
+                 max.tokens = 2048L,
+                 silently = FALSE) {
+
+  validation <- validate_chat_params(prompts, model,
+                                     system.role,
+                                     openai.API,
+                                     hf.token,
+                                     groq.API,
+                                     anthropic.API,
+                                     reps,
+                                     top.p,
+                                     temperature,
+                                     max.tokens,
+                                     silently)
+
+  prompts <- validation$prompts
+  system.role <- validation$system.role
+  reps <- validation$reps
+  max.tokens <- validation$max.tokens
+  model <- validation$model
+
+  ensure_aigenie_python()
+
+  provider_info <- detect_llm_provider(
+    model, groq.API, openai.API,
+    anthropic.API = anthropic.API
+  )
+
+  provider <- provider_info$provider
+  model <- provider_info$model
+
+  # Preallocate list (one entry per generation)
+  total_generations <- length(prompts) * reps
+  results_list <- vector("list", total_generations)
+  counter <- 1L
+
+  for (i in seq_along(prompts)) {
+
+    if (!silently) {
+      cat(sprintf("Generating response(s) using prompt %d\n", i))
+      cat("----------------------------------------\n")
+    }
+
+    for (j in seq_len(reps)) {
+
+      if (!silently) {
+        cat(sprintf("Generating response %d of %d... ", j, reps))
+      }
+
+      max_attempts <- 5L
+      wait_seconds <- 3
+      attempt <- 1L
+      success <- FALSE
+      last_error_msg <- NULL
+      raw_text <- NULL
+
+      while (attempt <= max_attempts && !success) {
+
+        res <- tryCatch({
+          generate_text_llm(
+            prompt = prompts[[i]],
+            system.role = system.role[[i]],
+            model = model,
+            temperature = temperature,
+            top.p = top.p,
+            max_tokens = max.tokens,
+            openai.API = openai.API,
+            groq.API = groq.API,
+            anthropic.API = anthropic.API
+          )
+        }, error = function(e) {
+          structure(
+            list(message = conditionMessage(e)),
+            class = "llm_error"
+          )
+        })
+
+        if (inherits(res, "llm_error")) {
+
+          last_error_msg <- res$message
+
+          if (!silently && attempt < max_attempts) {
+            cat(sprintf(
+              "\nAttempt %d failed: %s. Retrying in %ds...\n",
+              attempt, last_error_msg, wait_seconds
+            ))
+          }
+
+          attempt <- attempt + 1L
+          if (attempt <= max_attempts) Sys.sleep(wait_seconds)
+
+        } else {
+          raw_text <- res
+          success <- TRUE
+        }
+      }
+
+      if (!success) {
+        stop(
+          sprintf(
+            "API call failed after %d attempts.\nLast error: %s",
+            max_attempts,
+            ifelse(is.null(last_error_msg), "unknown error", last_error_msg)
+          ),
+          call. = FALSE
+        )
+      }
+
+      # Store result as one-row data frame
+      results_list[[counter]] <- data.frame(
+        rep = j,
+        prompt = prompts[[i]],
+        response = raw_text,
+        stringsAsFactors = FALSE
+      )
+
+      counter <- counter + 1L
+
+      if (!silently) cat("Done.\n")
+    }
+
+    if (!silently) cat("\n")
+  }
+
+  # Combine once
+  results_df <- do.call(rbind, results_list)
+
+  return(results_df)
+}
+
+
+
+
+#' Chat with a local LLM (no API calls)
+#'
+#' Send one or more prompts to a locally available large-language model (LLM)
+#' without making remote API calls. The local model must be installed/available
+#' on the machine as a local model directory. This function is intended for
+#' fully local inference (no API key required).
+#'
+#' @param prompts A character string or character vector. The main prompt(s)
+#'   given to the model. If multiple prompts are supplied, each will be sent
+#'   separately to the model.
+#' @param model.path A character string. Path for the local model file.
+#'    The function does not download models; ensure the model is present locally
+#'    before using this function.
+#' @param n.ctx Integer, default `4096`. The context window (number of tokens)
+#'   available to the model for a single generation.
+#' @param n.gpu.layers Integer, default `-1`. Number of model layers to place on
+#'   GPU (if supported). Use `-1` to let the runtime choose automatically.
+#' @param max.tokens Integer, default `1024L`. Maximum number of tokens requested
+#'   from the local model for a single generation.
+#' @param system.role A character string or character vector, default `NULL`.
+#'   The system role(s) (model persona). If only one system role is provided
+#'   and multiple prompts are supplied, the same role will be used for each
+#'   prompt. If multiple system roles are provided, they should align with
+#'   the prompts.
+#' @param reps Integer, default `1`. The number of times each prompt will be
+#'   given to the model (independent generations).
+#' @param temperature Numeric, default `1`. Sampling temperature controlling
+#'   response randomness.
+#' @param top.p Numeric, default `1`. Top-p (nucleus) sampling parameter.
+#' @param silently Logical, default `FALSE`. If `FALSE`, progress messages
+#'   are printed to the console. If `TRUE`, the function runs quietly.
+#'
+#' @return A `data.frame` with one row per generation (i.e., per prompt × repetition)
+#'   containing:
+#'   \itemize{
+#'     \item `rep` — repetition index
+#'     \item `prompt` — the prompt text sent to the model
+#'     \item `response` — the raw text response returned by the model
+#'   }
+#'
+#' @details
+#' Before running this function check that you are able to run the local
+#' environment via `check_local_llm_setup()`.
+#'
+#' For each prompt × repetition the function constructs a `full_prompt` that
+#' includes the `system.role` and the user prompt, sets a deterministic
+#' generation seed per generation, and calls the local model. A retry loop
+#' (up to 5 attempts, with brief waits) handles transient failures; if all
+#' attempts fail the function aborts with an informative error.
+#'
+#' @section Important / Warnings:
+#' * Local model inference can be resource intensive. Large models may require
+#'   substantial disk space, RAM, and (optionally) GPU support. Performance and
+#'   feasibility depend on model size and hardware.
+#' * `model.path` must point to a model already present; this function will not
+#'   download remote models.
+#'
+#' @examples
+#' \dontrun{
+#' #################################################
+#' ### Example 1: Writing a Very Basic Prompt  #####
+#' #################################################
+#'
+#' # For local_chat you do NOT need an API key, but you DO need a model
+#' # available locally. This might be a model directory (e.g. "models/ggml-mymodel")
+#' # or a runtime-specific identifier recognized by your local inference engine.
+#' model <- "path/to/local-model" # replace with your local model path/ID
+#'
+#' # Then, write your prompt. This will be given to the model directly.
+#' prompt <- "Why does the planet Saturn have rings? Give a 100 word explanation."
+#'
+#' # Optionally, add a system role (a model persona)
+#' system.role <- "You specialize in tutoring astronomy for high school students."
+#'
+#' # Add the number of prompt repetitions. By default, this is set to 1. But it
+#' # may be useful to increase the number of repetitions to get a sense of how
+#' # consistent your output might be.
+#' reps <- 3
+#'
+#' # Now you are ready to chat with the local model
+#' first_chat <- local_chat(
+#'   model.path = model, # local model identifier or path
+#'   prompts = prompt,
+#'   system.role = system.role,
+#'   reps = reps
+#' )
+#'
+#' # Check how the output changes from iteration to iteration
+#' first_chat$response[[1]] # first iteration output
+#' first_chat$response[[2]] # second iteration output
+#' first_chat$response[[3]] # third iteration output
+#'
+#'
+#' ####################################################################
+#' ### Example 2: Send multiple prompts in a single function call #####
+#' ####################################################################
+#'
+#' # You are able to send more than one prompt in a single call
+#' prompt1 <- "Why does the planet Saturn have rings? Give a 100 word explanation."
+#' prompt2 <- "Which planet is the hottest in our solar system? How do we know?"
+#'
+#' # Aggregate the prompts in a single object
+#' prompts <- c(prompt1, prompt2)
+#'
+#' # Ask the model the questions
+#' second_chat <- local_chat(
+#'   model.path = model, # defined above
+#'   prompts = prompts, # NEW
+#'   system.role = system.role, # defined above
+#'   reps = reps # defined above
+#' )
+#'
+#' # The outputted data frame for this example will have 6 rows
+#' # since the number of prompts (2) times the number of reps (3)
+#' # gives a total of 6 generations.
+#' second_chat$response[second_chat$prompt == prompt1] # the responses from prompt 1
+#' second_chat$response[second_chat$prompt == prompt2] # the responses from prompt 2
+#'
+#'
+#' ####################################################################
+#' ### Example 3: Send multiple prompts with different System Roles ###
+#' ####################################################################
+#'
+#' # Perhaps your prompts are not related. In that case, you would probably want
+#' # to set a different system role for each prompt.
+#' prompt2 <- "What is the difference between eukaryotes and prokaryotes? Why?"
+#'
+#' # This new second prompt does not fit with the astronomy tutor persona. Let's
+#' # write a persona to match this new prompt topic.
+#' system.role2 <- "You specialize in tutoring biology for middle school students."
+#'
+#' # Now, let's combine the system roles into a single object
+#' system.role <- c(system.role, # defined earlier: the astronomy tutor
+#'                  system.role2 # defined above: the biology tutor
+#'                  )
+#'
+#' # Aggregate our prompts in a single object again
+#' prompts <- c(prompt1, # Asks about Saturn's rings (needs astronomy tutor)
+#'              prompt2 # Asks about types of cells (needs biology tutor)
+#'              )
+#'
+#' # Ask the model the questions
+#' third_chat <- local_chat(
+#'   model.path = model,
+#'   prompts = prompts,
+#'   system.role = system.role,
+#'   reps = reps
+#' )
+#'
+#' # View the outputted data frame to examine the responses
+#' View(third_chat)
+#' }
+#'
+#' @seealso \code{\link{chat}}
+#' @export
+local_chat <- function(prompts, model.path,
+                       n.ctx = 4096,
+                       n.gpu.layers = -1,
+                       max.tokens = 1024,
+                       system.role = NULL,
+                       reps = 1,
+                       temperature = 1,
+                       top.p = 1,
+                       silently = FALSE) {
+
+  validation <- validate_local_chat_params(prompts, model.path,
+                                           n.ctx,
+                                           n.gpu.layers,
+                                           max.tokens,
+                                           system.role,
+                                           reps,
+                                           temperature,
+                                           top.p,
+                                           silently)
+
+  prompts <- validation$prompts
+  system.role <- validation$system.role
+  reps <- validation$reps
+  max.tokens <- validation$max.tokens
+  model.path <- validation$model.path
+
+  setup_ok <- check_local_llm_setup(model.path, silently)
+  if (!setup_ok) {
+    stop("Local setup incomplete. Please run check_local_llm_setup() for details.")
+  }
+
+  ensure_llama_cpp_python(silently = silently)
+
+  # ---- Load model ----
+  llama_cpp <- tryCatch(
+    reticulate::import("llama_cpp"),
+    error = function(e) {
+      stop("Failed to import llama_cpp: ", conditionMessage(e), call. = FALSE)
+    }
+  )
+
+  if (!silently) cat("Loading local model...\n")
+
+  llm <- tryCatch(
+    llama_cpp$Llama(
+      model_path = model.path,
+      n_ctx = as.integer(n.ctx),
+      n_gpu_layers = as.integer(n.gpu.layers),
+      seed = -1L,  # generation-level seed controls determinism
+      verbose = FALSE
+    ),
+    error = function(e) {
+      stop("Failed to load local model: ", conditionMessage(e), call. = FALSE)
+    }
+  )
+
+  if (!silently) cat("Model loaded successfully.\n\n")
+
+  # ---- Preallocate result list (one entry per generation) ----
+  total_generations <- length(prompts) * reps
+  results_list <- vector("list", total_generations)
+  counter <- 1L
+
+  # ---- Main loops ----
+  for (i in seq_along(prompts)) {
+
+    if (!silently) {
+      cat(sprintf("Generating response(s) using prompt %d\n", i))
+      cat("----------------------------------------\n")
+    }
+
+    for (j in seq_len(reps)) {
+
+      if (!silently) {
+        cat(sprintf("Generating response %d of %d... ", j, reps))
+      }
+
+      max_attempts <- 5L
+      wait_seconds <- 3
+      attempt <- 1L
+      success <- FALSE
+      last_error_msg <- NULL
+      raw_text <- NULL
+
+      while (attempt <= max_attempts && !success) {
+
+        full_prompt <- paste0(
+          "System: ", system.role[[i]], "\n\n",
+          "User: ", prompts[[i]], "\n\n",
+          "Assistant:"
+        )
+
+        generation_seed <- as.integer(
+          (123L + i * 1000L + j) %% .Machine$integer.max
+        )
+
+        raw_text <- tryCatch({
+          response <- llm(
+            prompt = full_prompt,
+            max_tokens = as.integer(max.tokens),
+            temperature = temperature,
+            top_p = top.p,
+            seed = generation_seed,
+            echo = FALSE,
+            stop = list("User:", "System:")
+          )
+          response[["choices"]][[1]][["text"]]
+        }, error = function(e) {
+          structure(
+            list(message = conditionMessage(e)),
+            class = "llm_error"
+          )
+        })
+
+        if (inherits(raw_text, "llm_error")) {
+
+          last_error_msg <- raw_text$message
+
+          if (!silently && attempt < max_attempts) {
+            cat(sprintf(
+              "\nAttempt %d failed: %s. Retrying in %ds...\n",
+              attempt, last_error_msg, wait_seconds
+            ))
+          }
+
+          attempt <- attempt + 1L
+          if (attempt <= max_attempts) Sys.sleep(wait_seconds)
+
+        } else {
+          success <- TRUE
+        }
+      }
+
+      if (!success) {
+        stop(
+          sprintf(
+            "Generation failed after %d attempts.\nLast error: %s",
+            max_attempts,
+            ifelse(is.null(last_error_msg), "unknown error", last_error_msg)
+          ),
+          call. = FALSE
+        )
+      }
+
+      # Store result as one-row data frame
+      results_list[[counter]] <- data.frame(
+        rep = j,
+        prompt = prompts[[i]],
+        response = raw_text,
+        stringsAsFactors = FALSE
+      )
+
+      counter <- counter + 1L
+
+      if (!silently) cat("Done.\n")
+    }
+
+    if (!silently) cat("\n")
+  }
+
+  # ---- Combine once ----
+  results_df <- do.call(rbind, results_list)
+
+  return(results_df)
+}
+
+
+
+

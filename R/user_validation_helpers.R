@@ -1429,5 +1429,110 @@ check_for_default_APIs <- function(hf.token, groq.API, openai.API,
 
 }
 
+#' Check that max.tokens is an integer
+#'
+#' @param max.tokens The number of tokens requested for the text generator
+#' @param silently Whether to print the warning statements
+#'
+#' @returns if valid, the `max.tokens` value as an integer object type
+max.tokens_validate <- function(max.tokens, silently){
+
+  if (!is.numeric(max.tokens) || length(max.tokens) != 1) {
+    stop("`max.tokens` must be a single numeric value.")
+  }
+
+  if (is.na(max.tokens) || max.tokens <= 0) {
+    stop("`max.tokens` must be a positive number.")
+  }
+
+  if (max.tokens %% 1 != 0) {
+    stop("`max.tokens` must be an integer value.")
+  }
+
+  max.tokens <- as.integer(max.tokens)
+
+
+  if (!silently) {
+    if (max.tokens < 100) {
+      warning(paste0("CAUTION: `max.tokens` set to ", max.tokens,
+                     ", which may be too low."))
+    }
+
+    if (max.tokens > 10000) {
+      warning(paste0("CAUTION: `max.tokens` set to ", max.tokens,
+                     ", which may be unusually high."))
+    }
+  }
+
+  return(max.tokens)
+}
+
+
+#' Check that reps is an integer
+#'
+#' @param reps The number of repetitions per prompt requested
+#'
+#' @returns if valid, the `reps` value as an integer object type
+validate_reps <- function(reps){
+
+  if (!is.numeric(reps) || length(reps) != 1) {
+    stop("`reps` must be a single numeric value.")
+  }
+
+  if (is.na(reps) || reps <= 0) {
+    stop("`reps` must be a positive number.")
+  }
+
+  if (reps %% 1 != 0) {
+    stop("`reps` must be an integer value.")
+  }
+
+  reps <- as.integer(reps)
+
+  return(reps)
+
+}
+
+
+
+#' Checks `system.role` and `prompts` for the `chat` function
+#'
+#' @param system.role The persona for the model. Either a string, `NULL` (default), or a list of strings
+#' @param prompts The prompts to be given to the model. Either a string or a list of strings
+#'
+#' @returns if valid, a list with the `system.role` and `prompts` objects
+validate_system.role_prompts <- function(system.role, prompts) {
+
+  # Ensure prompts is a character vector/list
+  if(!is.character(prompts) && !all(vapply(prompts, is.character, logical(1)))){
+    stop("All elements of `prompts` must be character strings.")
+  }
+
+  # Default system.role
+  if(is.null(system.role)){
+    system.role <- rep("", length(prompts))
+  }
+
+  # Ensure system.role is character vector/list
+  if(!is.character(system.role) && !all(vapply(system.role, is.character, logical(1)))){
+    stop("All elements of `system.role` must be character strings.")
+  }
+
+  # Broadcast singletons
+  if(length(system.role) == 1 && length(prompts) > 1){
+    system.role <- rep(system.role, length(prompts))
+  }
+  if(length(prompts) == 1 && length(system.role) > 1){
+    prompts <- rep(prompts, length(system.role))
+  }
+
+  # Final length check
+  if(length(prompts) != length(system.role)){
+    stop("Provide exactly one `system.role` per prompt.")
+  }
+
+  return(list(prompts = prompts, system.role = system.role))
+}
+
 
 

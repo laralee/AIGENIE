@@ -2347,10 +2347,9 @@ chat <- function(prompts, model,
 #' ### Example 1: Writing a Very Basic Prompt  #####
 #' #################################################
 #'
-#' # For local_chat you do NOT need an API key, but you DO need a model
-#' # available locally. This might be a model directory (e.g. "models/ggml-mymodel")
-#' # or a runtime-specific identifier recognized by your local inference engine.
-#' model <- "path/to/local-model" # replace with your local model path/ID
+#' # For local_chat you do NOT need an API key, but you DO need a text generation
+#' # model available locally.
+#' model <- "path/to/local-model" # replace with your local model path
 #'
 #' # Then, write your prompt. This will be given to the model directly.
 #' prompt <- "Why does the planet Saturn have rings? Give a 100 word explanation."

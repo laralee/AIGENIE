@@ -35,7 +35,7 @@ validate_user_input_local_AIGENIE(
   embeddings.only,
   adaptive,
   run.overall,
-  run.together,
+  all.together,
   plot,
   silently
 )

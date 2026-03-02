@@ -280,6 +280,34 @@
 #' `final_NMI`, `initial_NMI`, `embeddings`, `UVA`, `bootEGA`, `EGA.model_selected`, `final_items`, `final_EGA`, `initial_EGA`, `start_N`, `final_N`, `network_plot`, and `stability_plot`.
 #'
 #'
+#' @references
+#' Golino, H. F., & Epskamp, S. (2017). Exploratory graph analysis: A new approach
+#' for estimating the number of dimensions in psychological research.
+#' \emph{PLOS ONE, 12}(6), e0174035.
+#' \doi{10.1371/journal.pone.0174035}
+#'
+#' Christensen, A. P., Garrido, L. E., & Golino, H. (2023). Unique variable
+#' analysis: A network psychometrics method to detect local dependence.
+#' \emph{Multivariate Behavioral Research, 58}(6), 1165–1182.
+#' \doi{10.1080/00273171.2023.2194606}
+#'
+#' Christensen, A. P., & Golino, H. (2021). Estimating the stability of
+#' psychological dimensions via bootstrap exploratory graph analysis:
+#' A Monte Carlo simulation and tutorial.
+#' \emph{Psych, 3}(3), 479–500.
+#' \doi{10.3390/psych3030032}
+#'
+#' Danon, L., Díaz-Guilera, A., Duch, J., & Arenas, A. (2005). Comparing
+#' community structure identification.
+#' \emph{Journal of Statistical Mechanics: Theory and Experiment, 2005}(9),
+#' P09008.
+#' \doi{10.1088/1742-5468/2005/09/P09008}
+#'
+#' Russell-Lasalandra, L. L., Christensen, A. P., & Golino, H. (2024).
+#' Generative psychometrics via AI-GENIE: Automatic item generation and
+#' validation via network-integrated evaluation.
+#' \emph{PsyArXiv Preprints}.
+#'
 #' @examples
 #' \dontrun{
 #' ########################################################
@@ -813,6 +841,33 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
 #' Results are **not** split into `item_type_level` and `overall`. Instead the function returns a single named list (applies to the full — possibly `keep.org` modified — result set) containing:
 #' `final_NMI`, `initial_NMI`, `embeddings`, `UVA`, `bootEGA`, `EGA.model_selected`, `final_items`, `final_EGA`, `initial_EGA`, `start_N`, `final_N`, `network_plot`, and `stability_plot`.
 #'
+#' @references
+#' Golino, H. F., & Epskamp, S. (2017). Exploratory graph analysis: A new approach
+#' for estimating the number of dimensions in psychological research.
+#' \emph{PLOS ONE, 12}(6), e0174035.
+#' \doi{10.1371/journal.pone.0174035}
+#'
+#' Christensen, A. P., Garrido, L. E., & Golino, H. (2023). Unique variable
+#' analysis: A network psychometrics method to detect local dependence.
+#' \emph{Multivariate Behavioral Research, 58}(6), 1165–1182.
+#' \doi{10.1080/00273171.2023.2194606}
+#'
+#' Christensen, A. P., & Golino, H. (2021). Estimating the stability of
+#' psychological dimensions via bootstrap exploratory graph analysis:
+#' A Monte Carlo simulation and tutorial.
+#' \emph{Psych, 3}(3), 479–500.
+#' \doi{10.3390/psych3030032}
+#'
+#' Danon, L., Díaz-Guilera, A., Duch, J., & Arenas, A. (2005). Comparing
+#' community structure identification.
+#' \emph{Journal of Statistical Mechanics: Theory and Experiment, 2005}(9),
+#' P09008.
+#' \doi{10.1088/1742-5468/2005/09/P09008}
+#'
+#' Russell-Lasalandra, L. L., Christensen, A. P., & Golino, H. (2024).
+#' Generative psychometrics via AI-GENIE: Automatic item generation and
+#' validation via network-integrated evaluation.
+#' \emph{PsyArXiv Preprints}.
 #'
 #' @examples
 #' \dontrun{
@@ -1203,6 +1258,33 @@ local_AIGENIE <- function(
 #' `final_NMI`, `initial_NMI`, `embeddings`, `UVA`, `bootEGA`, `EGA.model_selected`, `final_items`, `final_EGA`, `initial_EGA`, `start_N`, `final_N`, `network_plot`, and `stability_plot`.
 #'
 #'
+#' @references
+#' Golino, H. F., & Epskamp, S. (2017). Exploratory graph analysis: A new approach
+#' for estimating the number of dimensions in psychological research.
+#' \emph{PLOS ONE, 12}(6), e0174035.
+#' \doi{10.1371/journal.pone.0174035}
+#'
+#' Christensen, A. P., Garrido, L. E., & Golino, H. (2023). Unique variable
+#' analysis: A network psychometrics method to detect local dependence.
+#' \emph{Multivariate Behavioral Research, 58}(6), 1165–1182.
+#' \doi{10.1080/00273171.2023.2194606}
+#'
+#' Christensen, A. P., & Golino, H. (2021). Estimating the stability of
+#' psychological dimensions via bootstrap exploratory graph analysis:
+#' A Monte Carlo simulation and tutorial.
+#' \emph{Psych, 3}(3), 479–500.
+#' \doi{10.3390/psych3030032}
+#'
+#' Danon, L., Díaz-Guilera, A., Duch, J., & Arenas, A. (2005). Comparing
+#' community structure identification.
+#' \emph{Journal of Statistical Mechanics: Theory and Experiment, 2005}(9),
+#' P09008.
+#' \doi{10.1088/1742-5468/2005/09/P09008}
+#'
+#' Russell-Lasalandra, L. L., Christensen, A. P., & Golino, H. (2024).
+#' Generative psychometrics via AI-GENIE: Automatic item generation and
+#' validation via network-integrated evaluation.
+#' \emph{PsyArXiv Preprints}.
 #'
 #' @examples
 #'  \dontrun{
@@ -1700,6 +1782,33 @@ GENIE <- function(
 #' Results are **not** split into `item_type_level` and `overall`. Instead the function returns a single named list containing:
 #' `final_NMI`, `initial_NMI`, `embeddings`, `UVA`, `bootEGA`, `EGA.model_selected`, `final_items`, `final_EGA`, `initial_EGA`, `start_N`, `final_N`, `network_plot`, and `stability_plot`.
 #'
+#' @references
+#' Golino, H. F., & Epskamp, S. (2017). Exploratory graph analysis: A new approach
+#' for estimating the number of dimensions in psychological research.
+#' \emph{PLOS ONE, 12}(6), e0174035.
+#' \doi{10.1371/journal.pone.0174035}
+#'
+#' Christensen, A. P., Garrido, L. E., & Golino, H. (2023). Unique variable
+#' analysis: A network psychometrics method to detect local dependence.
+#' \emph{Multivariate Behavioral Research, 58}(6), 1165–1182.
+#' \doi{10.1080/00273171.2023.2194606}
+#'
+#' Christensen, A. P., & Golino, H. (2021). Estimating the stability of
+#' psychological dimensions via bootstrap exploratory graph analysis:
+#' A Monte Carlo simulation and tutorial.
+#' \emph{Psych, 3}(3), 479–500.
+#' \doi{10.3390/psych3030032}
+#'
+#' Danon, L., Díaz-Guilera, A., Duch, J., & Arenas, A. (2005). Comparing
+#' community structure identification.
+#' \emph{Journal of Statistical Mechanics: Theory and Experiment, 2005}(9),
+#' P09008.
+#' \doi{10.1088/1742-5468/2005/09/P09008}
+#'
+#' Russell-Lasalandra, L. L., Christensen, A. P., & Golino, H. (2024).
+#' Generative psychometrics via AI-GENIE: Automatic item generation and
+#' validation via network-integrated evaluation.
+#' \emph{PsyArXiv Preprints}.
 #'
 #' @export
 local_GENIE <- function(

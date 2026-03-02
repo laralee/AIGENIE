@@ -1502,36 +1502,115 @@ validate_reps <- function(reps){
 #'
 #' @returns if valid, a list with the `system.role` and `prompts` objects
 validate_system.role_prompts <- function(system.role, prompts) {
-
-  # Ensure prompts is a character vector/list
-  if(!is.character(prompts) && !all(vapply(prompts, is.character, logical(1)))){
-    stop("All elements of `prompts` must be character strings.")
+  # Helper: check that x is a character vector or a list of single-character elements
+  is_char_or_charlist <- function(x) {
+    if (is.character(x)) return(TRUE)
+    if (is.list(x)) {
+      if (length(x) == 0) return(TRUE)
+      all(vapply(x, function(el) is.character(el) && length(el) == 1L, logical(1)))
+    } else {
+      FALSE
+    }
   }
 
-  # Default system.role
-  if(is.null(system.role)){
-    system.role <- rep("", length(prompts))
+  # Basic type checks
+  if (!is_char_or_charlist(prompts)) {
+    stop("`prompts` must be a character vector or a list of single character strings.", call. = FALSE)
+  }
+  if (!is_char_or_charlist(system.role) && !is.null(system.role)) {
+    stop("`system.role` must be NULL, a character vector, or a list of single character strings.", call. = FALSE)
   }
 
-  # Ensure system.role is character vector/list
-  if(!is.character(system.role) && !all(vapply(system.role, is.character, logical(1)))){
-    stop("All elements of `system.role` must be character strings.")
+  # Coerce lists -> character vector (each element is length-1 character)
+  coerce_to_charvec <- function(x) {
+    if (is.null(x)) return(NULL)
+    if (is.character(x)) return(as.character(x))
+    # x is a list of single-character elements
+    vapply(x, function(el) as.character(el)[1], character(1), USE.NAMES = TRUE)
   }
 
-  # Broadcast singletons
-  if(length(system.role) == 1 && length(prompts) > 1){
+  prompts <- coerce_to_charvec(prompts)
+  system.role <- coerce_to_charvec(system.role)
+
+  # Names presence
+  names_prompts <- names(prompts)
+  names_roles <- names(system.role)
+  has_names_prompts <- !is.null(names_prompts) && any(nzchar(names_prompts))
+  has_names_roles <- !is.null(names_roles) && any(nzchar(names_roles))
+
+  # Default system.role -> empty string(s) (preserve names if present)
+  if (is.null(system.role)) {
+    if (length(prompts) > 0) {
+      if (has_names_prompts) {
+        system.role <- rep("", length(prompts))
+        names(system.role) <- names_prompts
+      } else {
+        system.role <- rep("", length(prompts))
+      }
+    } else {
+      system.role <- character(0)
+    }
+    has_names_roles <- FALSE
+    names_roles <- NULL
+  }
+
+  # Broadcast singletons where sensible
+  # If system.role is length 1 and prompts length > 1, replicate system.role
+  if (length(system.role) == 1L && length(prompts) > 1L) {
     system.role <- rep(system.role, length(prompts))
+    # preserve prompts names if present
+    if (has_names_prompts) names(system.role) <- names_prompts
   }
-  if(length(prompts) == 1 && length(system.role) > 1){
+
+  # If prompts is length 1 and system.role length > 1, replicate prompts
+  if (length(prompts) == 1L && length(system.role) > 1L) {
     prompts <- rep(prompts, length(system.role))
+    if (has_names_roles) names(prompts) <- names_roles
+    has_names_prompts <- !is.null(names(prompts)) && any(nzchar(names(prompts))
+    )
+    names_prompts <- names(prompts)
+  }
+
+  # If both named: names must match exactly (same set); align system.role to prompts order
+  if (has_names_prompts && has_names_roles) {
+    np <- names_prompts[nzchar(names_prompts)]
+    nr <- names_roles[nzchar(names_roles)]
+    if (!setequal(np, nr)) {
+      stop(
+        "When both `prompts` and `system.role` are named, their names must match exactly. ",
+        "Mismatched names:\n  prompts: ",
+        paste0("'", np, "'", collapse = ", "),
+        "\n  system.role: ",
+        paste0("'", nr, "'", collapse = ", "),
+        call. = FALSE
+      )
+    }
+    # Reorder both so they share the same order. Use prompts' order as canonical.
+    if (!identical(np, nr)) {
+      system.role <- system.role[np]
+      # Keep prompts in their current order (np)
+      prompts <- prompts[np]
+    }
   }
 
   # Final length check
-  if(length(prompts) != length(system.role)){
-    stop("Provide exactly one `system.role` per prompt.")
+  if (length(prompts) != length(system.role)) {
+    stop("`prompts` and `system.role` must have the same length after broadcasting and alignment.", call. = FALSE)
   }
 
-  return(list(prompts = prompts, system.role = system.role))
+  # Ensure each element is a single string (safety check)
+  if (!all(vapply(prompts, function(x) is.character(x) && length(x) == 1L, logical(1)))) {
+    stop("Each element of `prompts` must be a single character string.", call. = FALSE)
+  }
+  if (!all(vapply(system.role, function(x) is.character(x) && length(x) == 1L, logical(1)))) {
+    stop("Each element of `system.role` must be a single character string.", call. = FALSE)
+  }
+
+  # Strip names and return
+  names(prompts) <- NULL
+  names(system.role) <- NULL
+
+  return(list(prompts = as.character(prompts), system.role = as.character(system.role)))
 }
 
 

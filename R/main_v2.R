@@ -954,15 +954,13 @@ local_AIGENIE <- function(
 
   # Step 1: Validate all inputs
   validation <- validate_user_input_local_AIGENIE(
-    item.attributes, model.path, embedding.model,
-    main.prompts, temperature, top.p, target.N,
-    domain, scale.title, item.examples, audience,
-    item.type.definitions, response.options, prompt.notes,
-    system.role, EGA.model, EGA.algorithm, EGA.uni.method,
-    n.ctx, n.gpu.layers, max.tokens,
-    device, batch.size, pooling.strategy, max.length,
-    keep.org, items.only, embeddings.only, adaptive, run.overall, all.together,
-    plot, silently
+    item.attributes, model.path, embedding.model, main.prompts,
+    temperature, top.p, target.N, domain, scale.title, item.examples,
+    audience, item.type.definitions, response.options, prompt.notes,
+    system.role, EGA.model, EGA.algorithm, EGA.uni.method, n.ctx,
+    n.gpu.layers, max.tokens, device, batch.size, pooling.strategy,
+    max.length, keep.org, items.only, embeddings.only, adaptive,
+    run.overall, all.together, plot, silently
   )
 
   # Extract validated parameters

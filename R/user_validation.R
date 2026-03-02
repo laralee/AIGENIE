@@ -206,20 +206,18 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
 #' @return A list of all validated parameters
 #'
 validate_user_input_local_AIGENIE <- function(
-    item.attributes, model.path, embedding.model,
-    main.prompts, temperature, top.p, target.N,
-    domain, scale.title, item.examples, audience,
-    item.type.definitions, response.options, prompt.notes,
-    system.role, EGA.model, EGA.algorithm, EGA.uni.method,
-    n.ctx, n.gpu.layers, max.tokens,
-    device, batch.size, pooling.strategy, max.length,
-    keep.org, items.only, embeddings.only, adaptive, run.overall, run.together,
-    plot, silently
+  item.attributes, model.path, embedding.model, main.prompts,
+  temperature, top.p, target.N, domain, scale.title, item.examples,
+  audience, item.type.definitions, response.options, prompt.notes,
+  system.role, EGA.model, EGA.algorithm, EGA.uni.method, n.ctx,
+  n.gpu.layers, max.tokens, device, batch.size, pooling.strategy,
+  max.length, keep.org, items.only, embeddings.only, adaptive,
+  run.overall, all.together, plot, silently
 ) {
 
   # 1. Validate booleans
   validate_booleans(items.only, adaptive, plot, keep.org, silently,
-                    run.overall, run.together, embeddings.only)
+                    run.overall, all.together, embeddings.only)
 
   # 2. Validate strings
   validate_strings(audience, scale.title, system.role, domain,

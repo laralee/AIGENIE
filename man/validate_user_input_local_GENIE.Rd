@@ -6,6 +6,7 @@
 \usage{
 validate_user_input_local_GENIE(
   items,
+  embedding.matrix,
   embedding.model,
   device,
   batch.size,

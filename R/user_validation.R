@@ -86,7 +86,11 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
                    embedding.model)
 
   # Check if the user forgot to add their API keys if using example code
-  check_for_default_APIs(hf.token, groq.API, openai.API, anthropic.API, jina.API)
+  check_for_default_APIs(hf.token=hf.token,
+                         groq.API=groq.API,
+                         openai.API=openai.API,
+                         anthropic.API = anthropic.API,
+                         jina.API = jina.API)
 
   # Validate the `item.attributes` object
   item.attributes <- items.attributes_validate(item.attributes)
@@ -326,10 +330,7 @@ validate_user_input_local_AIGENIE <- function(
 #' @param embedding.matrix Optional numeric matrix/data frame with items as columns
 #' @param openai.API OpenAI API key (string or NULL)
 #' @param hf.token HuggingFace token (string or NULL)
-#' @param groq.API Groq API key (string or NULL)
-#' @param model Language model identifier (string)
-#' @param temperature LLM temperature parameter (numeric, 0-2)
-#' @param top.p LLM top-p parameter (numeric, 0-1)
+#' @param jina.API Jina API key (string or NULL)
 #' @param embedding.model Embedding model identifier (string)
 #' @param EGA.model EGA network model (string or NULL)
 #' @param EGA.algorithm EGA algorithm (string)
@@ -345,11 +346,7 @@ validate_user_input_GENIE <- function(
     embedding.matrix,
     openai.API,
     hf.token,
-    groq.API,
     jina.API,
-    model,
-    temperature,
-    top.p,
     embedding.model,
     EGA.model,
     EGA.algorithm,
@@ -365,11 +362,13 @@ validate_user_input_GENIE <- function(
   validate_booleans(embeddings.only, plot, silently)
 
   # 2. Validate string parameters (allowing NULL where appropriate)
-  validate_strings(openai.API, groq.API, jina.API, hf.token, model,
+  validate_strings(openai.API, jina.API, hf.token,
                    EGA.model, EGA.algorithm, EGA.uni.method, embedding.model)
 
   # Check if the user forgot to add their API keys if using example code
-  check_for_default_APIs(hf.token, groq.API, openai.API, jina.API = jina.API)
+  check_for_default_APIs(hf.token=hf.token,
+                         openai.API=openai.API,
+                         jina.API = jina.API)
 
   # 3. Validate and clean the items data frame (GENIE-specific)
   items <- items_validate_GENIE(items)
@@ -384,14 +383,10 @@ validate_user_input_GENIE <- function(
     silently
   )
 
-  # 6. Validate model string and resolve to canonical form
-  model_info <- normalize_model_name(model, silently = silently)
-  model <- model_info$model
-
-  # 7. Validate embedding model and detect provider
+  # Validate embedding model and detect provider
   provider <- embedding.model_validate(embedding.model)
 
-  # 8. Validate EGA parameters (and run flags)
+  # Validate EGA parameters (and run flags)
   run_flags <- run_flags_validate(run.overall, all.together, item.attributes, silently)
   run.overall <- run_flags$run.overall
   all.together <- run_flags$all.together
@@ -401,11 +396,7 @@ validate_user_input_GENIE <- function(
   EGA.uni.method <- EGA_params$EGA.uni.method
   EGA.model <- EGA_params$EGA_model
 
-  # 9. Validate LLM parameters
-  temperature_validate(temperature)
-  top.p_validate(top.p)
-
-  # 10. Check API key availability based on what will be needed
+  # Check API key availability based on what will be needed
   if (is.null(embedding.matrix)) {
     # Will need to generate embeddings
     if (provider == "openai" && is.null(openai.API)) {
@@ -470,9 +461,6 @@ validate_user_input_GENIE <- function(
     item.attributes = item.attributes,
 
     # Shared parameters (validated)
-    model = model,
-    temperature = temperature,
-    top.p = top.p,
     embedding.model = embedding.model,
     provider = provider,
     EGA.model = EGA.model,
@@ -482,7 +470,7 @@ validate_user_input_GENIE <- function(
     # API keys (as-is, may be NULL)
     openai.API = openai.API,
     hf.token = hf.token,
-    groq.API = groq.API,
+    jina.API = jina.API,
 
     # Flags
     embeddings.only = embeddings.only,
@@ -514,6 +502,7 @@ validate_user_input_GENIE <- function(
 #'
 validate_user_input_local_GENIE <- function(
     items,
+    embedding.matrix,
     embedding.model,
     device,
     batch.size,
@@ -537,6 +526,7 @@ validate_user_input_local_GENIE <- function(
 
   # 3. Validate and clean the items data frame (GENIE-specific)
   items <- items_validate_GENIE(items)
+  embedding.matrix <- embedding_matrix_validate_GENIE(embedding.matrix, items, silently)
 
   # 4. Build item.attributes from the validated items (GENIE-specific)
   item.attributes <- build_item_attributes_from_items(items)
@@ -591,6 +581,7 @@ validate_user_input_local_GENIE <- function(
   return(list(
     # GENIE-specific validated parameters
     items = items,
+    embedding.matrix = embedding.matrix,
     item.attributes = item.attributes,
 
     # Local embedding parameters
@@ -633,7 +624,11 @@ validate_chat_params <- function(prompts, model,
   validate_strings(openai.API, hf.token, groq.API, anthropic.API)
 
   # Check if the user forgot to add their API keys if using example code
-  check_for_default_APIs(hf.token, groq.API, openai.API, anthropic.API, jina.API="pls ignore")
+  check_for_default_APIs(hf.token = hf.token,
+                         groq.API = groq.API,
+                         openai.API = openai.API,
+                         anthropic.API = anthropic.API
+                         )
 
 
   # Validate the `model` string and replace it with a valid model string if necessary

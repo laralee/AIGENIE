@@ -9,11 +9,7 @@ GENIE(
   embedding.matrix = NULL,
   openai.API = NULL,
   hf.token = NULL,
-  groq.API = NULL,
   jina.API = NULL,
-  model = "gpt4o",
-  temperature = 1,
-  top.p = 1,
   embedding.model = "text-embedding-3-small",
   EGA.model = NULL,
   EGA.algorithm = NULL,
@@ -46,16 +42,8 @@ All columns must be character type except ID (numeric or character allowed).
 
 \item{hf.token}{HuggingFace token (optional, improves rate limits for HF models)}
 
-\item{groq.API}{Groq API key (currently unused in GENIE)}
-
 \item{jina.API}{Jina AI API key for using Jina embedding models (e.g., "jina-embeddings-v3").
 Free tier available at \url{https://jina.ai/}.}
-
-\item{model}{Language model identifier (currently unused in GENIE)}
-
-\item{temperature}{LLM temperature (currently unused in GENIE)}
-
-\item{top.p}{LLM top-p parameter (currently unused in GENIE)}
 
 \item{embedding.model}{Embedding model to use if embedding.matrix not provided:
 \itemize{
@@ -89,6 +77,14 @@ If only one item type is present, this argument will be ignored.}
 \item{plot}{If \code{TRUE}, display network comparison plots}
 
 \item{silently}{If \code{TRUE}, suppress progress messages}
+
+\item{groq.API}{Groq API key (currently unused in GENIE)}
+
+\item{model}{Language model identifier (currently unused in GENIE)}
+
+\item{temperature}{LLM temperature (currently unused in GENIE)}
+
+\item{top.p}{LLM top-p parameter (currently unused in GENIE)}
 }
 \value{
 The structure of the return value depends on the function flags.

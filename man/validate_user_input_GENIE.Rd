@@ -9,11 +9,7 @@ validate_user_input_GENIE(
   embedding.matrix,
   openai.API,
   hf.token,
-  groq.API,
   jina.API,
-  model,
-  temperature,
-  top.p,
   embedding.model,
   EGA.model,
   EGA.algorithm,
@@ -34,13 +30,7 @@ validate_user_input_GENIE(
 
 \item{hf.token}{HuggingFace token (string or NULL)}
 
-\item{groq.API}{Groq API key (string or NULL)}
-
-\item{model}{Language model identifier (string)}
-
-\item{temperature}{LLM temperature parameter (numeric, 0-2)}
-
-\item{top.p}{LLM top-p parameter (numeric, 0-1)}
+\item{jina.API}{Jina API key (string or NULL)}
 
 \item{embedding.model}{Embedding model identifier (string)}
 

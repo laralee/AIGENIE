@@ -1371,7 +1371,7 @@ main.prompts_validate <- function(main.prompts, items.attributes, silently) {
 #' @param groq.API The Groq API key provided
 #' @param openai.API The OpenAI API key provided
 #'
-check_for_default_APIs <- function(hf.token, groq.API, openai.API,
+check_for_default_APIs <- function(hf.token, groq.API=NULL, openai.API,
                                     anthropic.API = NULL, jina.API = NULL){
 
   phrase <- "INSERT YOUR KEY HERE"

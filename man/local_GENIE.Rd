@@ -6,6 +6,7 @@
 \usage{
 local_GENIE(
   items,
+  embedding.matrix = NULL,
   embedding.model = "bert-base-uncased",
   device = "auto",
   batch.size = 32,
@@ -29,6 +30,13 @@ All columns must be character type except ID (numeric or character allowed).
 \item \code{attribute}: The construct/attribute the item measures
 \item \code{type}: The item type/category
 \item \code{ID}: Unique identifier for each item
+}}
+
+\item{embedding.matrix}{Optional numeric matrix or data frame where:
+\itemize{
+\item Rows represent embedding dimensions
+\item Columns represent items (must match items$ID exactly)
+\item If \code{NULL}, embeddings will be generated using \code{embedding.model}
 }}
 
 \item{embedding.model}{Local embedding model identifier or path. Compatible models:
@@ -146,6 +154,185 @@ Local version of GENIE that uses locally installed embedding models for complete
 privacy and offline operation. Provides the same psychometric validation and
 quality assessment for user-supplied items as GENIE, but generates embeddings
 locally using transformer models instead of API calls.
+}
+\examples{
+\dontrun{
+###################################################
+#### Using GENIE with a Local Embedding Model  ####
+###################################################
+
+# First, ensure that your machine is configured to compute local generation
+install_local_llm_support()
+# Once ready, continue to run GENIE on your data frame
+
+
+# Specify item statements that you already have written
+statements <- c(
+  "I find myself naturally initiating conversations with strangers at social gatherings.",
+  "I enjoy creating a welcoming atmosphere for people I meet for the first time.",
+  "I generally maintain a hopeful outlook, even when faced with challenges.",
+  "I frequently find myself in a good mood, spreading cheer to those around me.",
+  "I often have the drive to engage in exciting activities, even after a long day.",
+  "I tend to tackle projects with enthusiasm and high energy from start to finish.",
+  "I actively seek to include others in group activities, making them feel part of the team.",
+  "I frequently reach out to new acquaintances to foster connections and friendships.",
+  "I habitually focus on the silver lining in difficult situations, maintaining an optimistic perspective.",
+  "I often express gratitude for the positive aspects of my life, which enhances my overall mood.",
+  "I find joy in taking on new challenges that require a burst of energy and enthusiasm.",
+  "I thrive in dynamic environments that keep me on my toes and invigorate my spirit.",
+  "I take pleasure in introducing people to one another, acting as a social connector.",
+  "I enjoy making others comfortable by engaging them in light-hearted conversation.",
+  "I often set a positive tone in group settings with my upbeat demeanor.",
+  "I approach each day with a sense of excitement and a positive mindset.",
+  "I am drawn to fast-paced environments where I can express my high energy levels.",
+  "I feel invigorated when working on multiple projects that demand my full attention.",
+  "I take delight in meeting new people and quickly making them feel at ease.",
+  "I find it rewarding to help shy or reserved individuals become involved in group discussions.",
+  "I have a natural tendency to uplift others with my positive remarks and outlook.",
+  "I find happiness in highlighting the successes of others, contributing to a cheerful environment.",
+  "I eagerly immerse myself in activities that demand stamina and sustained energy.",
+  "I often channel my vitality into hobbies and sports that require physical exertion.",
+  "I feel rejuvenated when I bring people together to collaborate and share ideas.",
+  "I often extend a genuine greeting to others, creating an inviting atmosphere.",
+  "I regularly see challenges as opportunities for growth and learning.",
+  "I commonly radiate positivity, influencing the mood of those around me.",
+  "I approach mornings with anticipation and vigor, ready to embrace the day.",
+  "I consistently infuse enthusiasm into group activities, boosting collective energy levels.",
+  "I make an effort to connect with people by remembering details about their lives.",
+  "I genuinely enjoy learning about people's diverse experiences and viewpoints.",
+  "I have a habit of encouraging others to see the bright side of their situations.",
+  "I believe in celebrating small victories, finding joy in daily accomplishments.",
+  "I often find myself eager to start the day with ambitious plans and goals.",
+  "I am known for sustaining high levels of energy during extended work sessions or projects.",
+  "I make an effort to engage those around me in meaningful and enjoyable conversations.",
+  "I often seek opportunities to bring people together, fostering a sense of community.",
+  "I naturally inspire others with my optimistic outlook, even in uncertain times.",
+  "I frequently look for the positive aspects in challenging situations and share them with others.",
+  "I approach new experiences with an eagerness and fervor that motivates those around me.",
+  "I thrive on maintaining high energy levels throughout demanding and fast-paced days.",
+  "I take pleasure in initiating warm interactions in group settings to make everyone comfortable.",
+  "I enjoy hosting gatherings that connect friends and encourage social bonding.",
+  "I am skilled at turning setbacks into learning experiences to maintain a positive outlook.",
+  "I always try to highlight the benefits in situations, enhancing a cheerful atmosphere.",
+  "I find excitement in starting the day with a list of activities to energize my routine.",
+  "I relish the challenge of keeping up with dynamic schedules that require sustained energy.",
+  "I often find joy in making newcomers feel welcome and appreciated in group settings.",
+  "I genuinely enjoy striking up conversations to learn more about the people I encounter.",
+  "I have a knack for seeing potential in situations that others might overlook.",
+  "I consistently try to uplift the mood in my surroundings with hopeful and encouraging words.",
+  "I frequently harness my energy to inspire and motivate those around me in team environments.",
+  "I often feel invigorated by challenges that require sustained focus and dynamic thinking.",
+  "I often create environments where people feel encouraged to share their thoughts freely.",
+  "I find it fulfilling to engage deeply with people, building lasting connections.",
+  "I see potential in every day, believing it holds opportunities for something good.",
+  "I actively focus on the pleasures of life, which naturally enhances my mood.",
+  "I am invigorated by opportunities to engage in lively and spirited events.",
+  "I tend to maintain momentum throughout the day, sustaining my energy levels.",
+  "I frequently experience sudden shifts in my emotions even when there is no apparent reason.",
+  "People often find it difficult to predict my emotional reactions to different situations.",
+  "I often doubt my abilities and worry about whether I am meeting expectations.",
+  "I frequently question my self-worth and tend to seek reassurance from others.",
+  "I become annoyed easily over small inconveniences or delays.",
+  "I often find myself feeling agitated or frustrated in situations that don't bother most people.",
+  "My mood can change drastically over the course of a day, often without any clear reason.",
+  "I tend to experience emotional highs and lows more intensely than those around me.",
+  "I sometimes avoid taking on new challenges because I fear not being good enough.",
+  "I often feel uncertain about my social standing and worry about being accepted by others.",
+  "I find myself getting irritated quickly when things don't go my way.",
+  "Minor annoyances often cause my patience to wear thin unusually fast.",
+  "I frequently struggle to maintain a stable emotional state throughout the day.",
+  "Unexpected events can cause me to experience drastic emotional swings.",
+  "I often feel inadequate in comparison to others around me.",
+  "I tend to second-guess my choices due to a lack of confidence in myself.",
+  "I tend to become frustrated when things do not proceed as I have planned.",
+  "I am prone to irritation when faced with unexpected changes to my routine.",
+  "My emotional state is often unpredictable, shifting from contentment to sadness with little warning.",
+  "People have commented that my emotions seem to fluctuate more than those of others.",
+  "I frequently feel self-conscious about my achievements compared to those of my peers.",
+  "I often worry excessively about making mistakes, even in situations where it might be inconsequential.",
+  "Small disruptions in my daily routine can trigger strong feelings of annoyance.",
+  "I find myself becoming irritated more quickly than others when under stress or pressure.",
+  "I often find my emotional responses to be unpredictable, feeling fine one moment and unsettled the next.",
+  "I experience strong emotions that can shift unexpectedly, often catching me off guard.",
+  "I regularly feel uncertain about my ability to manage new responsibilities effectively.",
+  "I often question my decisions, fearing they might not lead to the best outcomes.",
+  "I frequently find myself reacting with impatience to situations perceived as minor interruptions.",
+  "Even minor provocations can sometimes lead to an exaggerated sense of annoyance for me.",
+  "My emotional state is often inconsistent, and I can feel ecstatic or despondent within short timeframes.",
+  "I notice that my feelings can be quite volatile and intense, affecting how I interact with others throughout the day.",
+  "I regularly doubt whether I am capable of achieving my personal or professional goals.",
+  "I often seek validation from others to feel reassured about my self-worth.",
+  "I am sensitive to disturbances and find my patience wearing thin quickly when things aren't orderly.",
+  "I occasionally struggle to contain my annoyance over trivial issues that disrupt my sense of calm.",
+  "I can go from feeling upbeat to being downcast without an obvious cause.",
+  "My emotional responses can sometimes be unpredictable, shifting with little notice.",
+  "I often feel the need for affirmation about my abilities from friends or colleagues.",
+  "I tend to compare myself to others and feel uncertain about my achievements.",
+  "I find myself easily bothered by noises or disturbances in my environment.",
+  "I get easily flustered by situations that interrupt my planned activities.",
+  "I find it challenging to maintain a consistent emotional state, regardless of external situations.",
+  "My emotional reactions can be intense and differ significantly from moment to moment.",
+  "I have a persistent fear of not measuring up to the expectations placed on me.",
+  "I often feel anxious about others' perceptions of my capabilities and appearance.",
+  "I am quick to express frustration at minor inconveniences in my daily routine.",
+  "I find that small, unforeseen events often disrupt my sense of calm and lead to irritation.",
+  "My emotional reactions can be strong and relentless, impacting my behavior throughout the day.",
+  "I often find myself emotionally labile, with an inner turbulence that others rarely perceive.",
+  "I frequently worry about my competence in areas where others seem confident.",
+  "I have a tendency to second-guess myself and require affirmation to feel reassured about my choices.",
+  "Small disruptions can ignite a lingering sense of agitation within me.",
+  "I often catch myself feeling irritable even in relatively calm settings.",
+  "I find myself swinging from happy to melancholic in a short span of time, often surprising even myself.",
+  "Others often comment on how quickly my mood can change in response to seemingly minor events.",
+  "I tend to feel apprehensive about presenting my opinions, fearing they may be judged harshly.",
+  "I often require reassurance from peers to feel confident in my decisions and ideas.",
+  "Interruptions during focused tasks often lead to an outpour of irritation from me.",
+  "I struggle to keep my frustration in check when things do not unfold as expected."
+)
+
+
+# Create the item type and attribute labels
+item.attributes <- c(
+  rep(c("friendly", "positive", "energetic"), each = 2, times = 10),
+  rep(c("moody", "insecure", "irritable"), each = 2, times = 10)
+)
+item.types <- c(
+  rep("extraversion", 60),
+  rep("neuroticism", 60)
+)
+
+
+# Build your data frame with the required columns: ID, statement, attribute, and type
+items_df <- data.frame(
+  ID = rep(as.factor(1:length(statements))),
+  statement = statements,
+  attribute = item.attributes,
+  type = item.types
+)
+
+
+# Run GENIE with items you provide with the default local embedding model ("bert-base-uncased")
+example_reduction <- local_GENIE(items = items_df)
+
+# View the results
+View(example_reduction)
+
+
+########################################################################################
+###### Or, Run local_GENIE with a locally-install Embedding Model of your Choice #######
+#######################################################################################
+
+# Provide the path to a compatible locally installed embedding model
+# Note that this package will not install the model for you, it should already be
+# installed and ready to go
+embedding.model <- "ADD YOUR PATH HERE"
+
+# Run GENIE using the Hugging Face Embedding model
+example_reduction_your_model <- local_GENIE(items = items_df,
+                              embedding.model = embedding.model)
+
+}
+
 }
 \references{
 Golino, H. F., & Epskamp, S. (2017). Exploratory graph analysis: A new approach

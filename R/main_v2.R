@@ -2722,22 +2722,41 @@ local_chat <- function(prompts, model.path,
           (123L + i * 1000L + j) %% .Machine$integer.max
         )
 
+        # Shared arguments minus the token parameter (resolved below)
+        base_args <- list(
+          prompt      = full_prompt,
+          temperature = temperature,
+          top_p       = top.p,
+          seed        = generation_seed,
+          echo        = FALSE,
+          stop        = list("User:", "System:")
+        )
+
+        # Generate — retry with max_completion_tokens if model rejects max_tokens
         raw_text <- tryCatch({
-          response <- llm(
-            prompt = full_prompt,
-            max_tokens = as.integer(max.tokens),
-            temperature = temperature,
-            top_p = top.p,
-            seed = generation_seed,
-            echo = FALSE,
-            stop = list("User:", "System:")
-          )
+          response <- do.call(llm, c(base_args,
+                                     list(max_tokens = as.integer(max.tokens))))
           response[["choices"]][[1]][["text"]]
         }, error = function(e) {
-          structure(
-            list(message = conditionMessage(e)),
-            class = "llm_error"
-          )
+          if (grepl("max_tokens", conditionMessage(e), fixed = TRUE) &&
+              grepl("max_completion_tokens", conditionMessage(e), fixed = TRUE)) {
+            if (!silently) cat("Retrying with 'max_completion_tokens' parameter...\n")
+            tryCatch({
+              response <- do.call(llm, c(base_args,
+                                         list(max_completion_tokens = as.integer(max.tokens))))
+              response[["choices"]][[1]][["text"]]
+            }, error = function(e2) {
+              structure(
+                list(message = conditionMessage(e2)),
+                class = "llm_error"
+              )
+            })
+          } else {
+            structure(
+              list(message = conditionMessage(e)),
+              class = "llm_error"
+            )
+          }
         })
 
         if (inherits(raw_text, "llm_error")) {
@@ -2791,7 +2810,6 @@ local_chat <- function(prompts, model.path,
 
   return(results_df)
 }
-
 
 
 

@@ -9,11 +9,11 @@
 # ============================================================================
 
 #' Generate Items via LLM
-#' 
+#'
 #' @description
 #' Generates scale items using the specified LLM provider. Supports OpenAI,
 #' Groq, and local GGUF models.
-#' 
+#'
 #' @param main.prompts Named list of prompts for each item type
 #' @param system.role Character string defining the system role
 #' @param model Character string specifying the model
@@ -24,25 +24,25 @@
 #' @param groq.API Optional Groq API key
 #' @param openai.API Optional OpenAI API key
 #' @param target.N Named list of target item counts per type
-#' 
+#'
 #' @return A list with 'items' data frame and 'successful' flag
 #' @keywords internal
 generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temperature,
-                                    adaptive, silently, groq.API, openai.API,
-                                    anthropic.API = NULL, target.N) {
-  
+                                   adaptive, silently, groq.API, openai.API,
+                                   anthropic.API = NULL, target.N) {
+
   ensure_aigenie_python()
-  
+
   # Detect provider
   provider_info <- detect_llm_provider(model, groq.API, openai.API,
-                                        anthropic.API = anthropic.API)
+                                       anthropic.API = anthropic.API)
   provider <- provider_info$provider
   model <- provider_info$model
-  
+
   if (!silently) {
     cat("\nGenerating items using", provider, "model:", model, "\n")
   }
-  
+
   # Initialize results
   all_items_df <- data.frame(
     type = character(),
@@ -50,35 +50,35 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
     statement = character(),
     stringsAsFactors = FALSE
   )
-  
+
   successful <- TRUE
-  
+
   # Process each item type
   for (item_type in names(main.prompts)) {
-    
+
     if (!silently) {
       cat("\n--- Generating items for:", item_type, "---\n")
     }
-    
+
     type_items_df <- data.frame(
       type = character(),
       attribute = character(),
       statement = character(),
       stringsAsFactors = FALSE
     )
-    
+
     iterations_without_new <- 0
     total_iterations <- 0
     max_iterations <- 50
-    
+
     # Generate until we reach target
     while (nrow(type_items_df) < target.N[[item_type]] && total_iterations < max_iterations) {
-      
+
       total_iterations <- total_iterations + 1
-      
+
       # Build prompt with adaptive mode
       current_prompt <- main.prompts[[item_type]]
-      
+
       if (adaptive && nrow(all_items_df) > 0) {
         examples_string <- construct_item.examples_string(all_items_df, item_type)
         if (!is.null(examples_string)) {
@@ -89,8 +89,9 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
           )
         }
       }
-      
-      # Generate text using unified interface
+
+      # Generate text — first attempt with 'max_tokens'; if the model requires
+      # 'max_completion_tokens' instead, catch that specific error and retry.
       raw_text <- tryCatch({
         generate_text_llm(
           prompt = current_prompt,
@@ -104,33 +105,53 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
           anthropic.API = anthropic.API
         )
       }, error = function(e) {
-        if (!silently) {
-          cat("Generation error:", conditionMessage(e), "\n")
+        # Some models require 'max_completion_tokens' instead of 'max_tokens'
+        if (grepl("max_tokens", conditionMessage(e), fixed = TRUE) &&
+            grepl("max_completion_tokens", conditionMessage(e), fixed = TRUE)) {
+          if (!silently) cat("Retrying with 'max_completion_tokens' parameter...\n")
+          tryCatch({
+            generate_text_llm(
+              prompt = current_prompt,
+              system.role = system.role,
+              model = model,
+              temperature = temperature,
+              top.p = top.p,
+              max_completion_tokens = 2048L,
+              openai.API = openai.API,
+              groq.API = groq.API,
+              anthropic.API = anthropic.API
+            )
+          }, error = function(e2) {
+            if (!silently) cat("Generation error:", conditionMessage(e2), "\n")
+            NULL
+          })
+        } else {
+          if (!silently) cat("Generation error:", conditionMessage(e), "\n")
+          NULL
         }
-        NULL
       })
-      
+
       if (is.null(raw_text)) {
         iterations_without_new <- iterations_without_new + 1
         Sys.sleep(2)
         next
       }
-      
+
       # Parse response
       cleaned_df <- cleaning_function(raw_text, item_type)
-      
+
       if (nrow(cleaned_df) > 0) {
         # Remove duplicates
-        new_items <- cleaned_df[!cleaned_df$statement %in% c(type_items_df$statement, 
-                                                              all_items_df$statement), ]
-        
+        new_items <- cleaned_df[!cleaned_df$statement %in% c(type_items_df$statement,
+                                                             all_items_df$statement), ]
+
         if (nrow(new_items) > 0) {
           type_items_df <- rbind(type_items_df, new_items)
           all_items_df <- rbind(all_items_df, new_items)
           iterations_without_new <- 0
-          
+
           if (!silently) {
-            cat("\rItems for", item_type, ":", nrow(type_items_df), "/", 
+            cat("\rItems for", item_type, ":", nrow(type_items_df), "/",
                 target.N[[item_type]], "   ")
             flush.console()
           }
@@ -145,31 +166,31 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
           cat("\n[Parse failed for", item_type, "- preview:", preview, "...]\n")
         }
       }
-      
+
       # Check for stalling
       if (iterations_without_new >= 10) {
         if (!silently) {
-          warning("\nUnable to generate new items for ", item_type, 
+          warning("\nUnable to generate new items for ", item_type,
                   " after 10 iterations. Generated ", nrow(type_items_df),
                   " of ", target.N[[item_type]], " items.", immediate. = TRUE)
         }
         break
       }
-      
+
       # Small delay to avoid rate limits
       Sys.sleep(0.5)
     }
-    
+
     if (!silently) {
       cat("\n")
     }
   }
-  
+
   if (!silently) {
     cat("\n=== Generation complete ===\n")
     cat("Total items generated:", nrow(all_items_df), "\n\n")
   }
-  
+
   return(list(items = all_items_df, successful = successful))
 }
 
@@ -178,10 +199,10 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
 # ============================================================================
 
 #' Generate Items Using Local LLM (GGUF)
-#' 
+#'
 #' @description
 #' Generates items using a locally installed GGUF model via llama-cpp-python.
-#' 
+#'
 #' @param main.prompts Named list of prompts
 #' @param system.role Character string with system role
 #' @param model.path Path to local GGUF model file
@@ -193,17 +214,17 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
 #' @param n.ctx Integer. Context window size
 #' @param n.gpu.layers Integer. GPU layers (-1 for all)
 #' @param max.tokens Integer. Max tokens per generation
-#' 
+#'
 #' @return A list with 'items' data frame and 'successful' flag
 #' @keywords internal
 generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
-                                          temperature, top.p, adaptive, silently,
-                                          target.N, n.ctx = 4096, n.gpu.layers = -1,
-                                          max.tokens = 1024) {
-  
+                                         temperature, top.p, adaptive, silently,
+                                         target.N, n.ctx = 4096, n.gpu.layers = -1,
+                                         max.tokens = 1024) {
+
   # Ensure llama-cpp is available
   ensure_llama_cpp_python(silently = silently)
-  
+
   # Initialize results
   all_items_df <- data.frame(
     type = character(),
@@ -211,15 +232,15 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
     statement = character(),
     stringsAsFactors = FALSE
   )
-  
+
   # Load the model
   tryCatch({
     llama_cpp <- reticulate::import("llama_cpp")
-    
+
     if (!silently) {
       cat("Loading local model...\n")
     }
-    
+
     llm <- llama_cpp$Llama(
       model_path = model.path,
       n_ctx = as.integer(n.ctx),
@@ -227,45 +248,45 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
       seed = 123L,
       verbose = FALSE
     )
-    
+
     if (!silently) {
       cat("Model loaded successfully.\n\n")
     }
-    
+
   }, error = function(e) {
     stop("Failed to load local model: ", conditionMessage(e), call. = FALSE)
   })
-  
+
   # Process each item type
   for (item_type in names(main.prompts)) {
-    
+
     if (!silently) {
       cat("Generating items for", item_type, "...\n")
     }
-    
+
     type_items_df <- data.frame(
       type = character(),
       attribute = character(),
       statement = character(),
       stringsAsFactors = FALSE
     )
-    
+
     iterations_without_new <- 0
     context_limit_reached <- FALSE
     max_previous_items <- Inf
-    
+
     while (nrow(type_items_df) < target.N[[item_type]]) {
-      
+
       # Build prompt
       current_prompt <- main.prompts[[item_type]]
-      
+
       if (adaptive && nrow(all_items_df) > 0) {
         previous_items <- all_items_df
-        
+
         if (context_limit_reached && nrow(previous_items) > max_previous_items) {
           previous_items <- tail(previous_items, max_previous_items)
         }
-        
+
         examples_string <- construct_item.examples_string(previous_items, item_type)
         if (!is.null(examples_string)) {
           current_prompt <- paste0(
@@ -275,14 +296,14 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
           )
         }
       }
-      
+
       # Format for local model
       full_prompt <- paste0(
         "System: ", system.role, "\n\n",
         "User: ", current_prompt, "\n\n",
         "Assistant:"
       )
-      
+
       # Check context limit
       prompt_tokens <- nchar(full_prompt) / 4
       if (prompt_tokens > n.ctx * 0.7) {
@@ -290,8 +311,9 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
         max_previous_items <- floor(nrow(all_items_df) * 0.5)
         next
       }
-      
-      # Generate
+
+      # Generate — first attempt with 'max_tokens'; if the model requires
+      # 'max_completion_tokens' instead, catch that specific error and retry.
       raw_text <- tryCatch({
         response <- llm(
           prompt = full_prompt,
@@ -303,28 +325,48 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
         )
         response[["choices"]][[1]][["text"]]
       }, error = function(e) {
-        if (!silently) cat("Generation error:", conditionMessage(e), "\n")
-        NULL
+        # Some models require 'max_completion_tokens' instead of 'max_tokens'
+        if (grepl("max_tokens", conditionMessage(e), fixed = TRUE) &&
+            grepl("max_completion_tokens", conditionMessage(e), fixed = TRUE)) {
+          if (!silently) cat("Retrying with 'max_completion_tokens' parameter...\n")
+          tryCatch({
+            response <- llm(
+              prompt = full_prompt,
+              max_completion_tokens = as.integer(max.tokens),
+              temperature = temperature,
+              top_p = top.p,
+              echo = FALSE,
+              stop = list("User:", "System:")
+            )
+            response[["choices"]][[1]][["text"]]
+          }, error = function(e2) {
+            if (!silently) cat("Generation error:", conditionMessage(e2), "\n")
+            NULL
+          })
+        } else {
+          if (!silently) cat("Generation error:", conditionMessage(e), "\n")
+          NULL
+        }
       })
-      
+
       if (is.null(raw_text)) {
         iterations_without_new <- iterations_without_new + 1
         if (iterations_without_new >= 10) break
         next
       }
-      
+
       # Parse
       cleaned_df <- cleaning_function(raw_text, item_type)
-      
+
       if (nrow(cleaned_df) > 0) {
         new_items <- cleaned_df[!cleaned_df$statement %in% c(type_items_df$statement,
-                                                              all_items_df$statement), ]
-        
+                                                             all_items_df$statement), ]
+
         if (nrow(new_items) > 0) {
           type_items_df <- rbind(type_items_df, new_items)
           all_items_df <- rbind(all_items_df, new_items)
           iterations_without_new <- 0
-          
+
           if (!silently) {
             cat("\rItems:", nrow(type_items_df), "/", target.N[[item_type]], "   ")
             flush.console()
@@ -335,34 +377,34 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
       } else {
         iterations_without_new <- iterations_without_new + 1
       }
-      
+
       if (iterations_without_new >= 10) {
         if (!silently) {
-          warning("Unable to generate new items for ", item_type, 
+          warning("Unable to generate new items for ", item_type,
                   " after 10 iterations.")
         }
         break
       }
     }
-    
+
     if (!silently) cat("\n")
   }
-  
+
   if (!silently) {
     cat("Total items generated:", nrow(all_items_df), "\n")
   }
-  
+
   return(list(items = all_items_df, successful = TRUE))
 }
 
 #' Ensure llama-cpp-python is Installed
-#' 
+#'
 #' @param silently Logical. Suppress messages?
 #' @param force_reinstall Logical. Force reinstallation?
-#' 
+#'
 #' @keywords internal
 ensure_llama_cpp_python <- function(silently = FALSE, force_reinstall = FALSE) {
-  
+
   if (!force_reinstall) {
     tryCatch({
       llama_cpp <- reticulate::import("llama_cpp")
@@ -372,35 +414,35 @@ ensure_llama_cpp_python <- function(silently = FALSE, force_reinstall = FALSE) {
       # Not available, proceed with installation
     })
   }
-  
+
   if (!silently) {
     message("Setting up llama-cpp-python for local LLM support...")
   }
-  
+
   # Install through UV
   env_path <- get_aigenie_env_path()
   python_path <- get_python_path(env_path)
-  
+
   # Check for Apple Silicon
   sys_info <- Sys.info()
   if (sys_info["sysname"] == "Darwin" && grepl("arm64|aarch64", sys_info["machine"])) {
     Sys.setenv(CMAKE_ARGS = "-DLLAMA_METAL=on")
   }
-  
+
   result <- system2("uv",
                     args = c("pip", "install",
                              "--python", shQuote(python_path),
                              "llama-cpp-python"),
                     stdout = TRUE, stderr = TRUE)
-  
+
   Sys.unsetenv("CMAKE_ARGS")
-  
+
   exit_status <- attr(result, "status")
   if (!is.null(exit_status) && exit_status != 0) {
     stop("Failed to install llama-cpp-python: ", paste(result, collapse = "\n"),
          call. = FALSE)
   }
-  
+
   tryCatch({
     llama_cpp <- reticulate::import("llama_cpp", delay_load = FALSE)
     if (!silently) message("llama-cpp-python installed successfully!")
@@ -417,42 +459,42 @@ ensure_llama_cpp_python <- function(silently = FALSE, force_reinstall = FALSE) {
 # ============================================================================
 
 #' Clean and Parse LLM Response
-#' 
+#'
 #' @description
 #' Parses LLM-generated text to extract structured item data.
 #' Handles JSON format and falls back to text parsing.
-#' 
+#'
 #' @param raw_text Character string with LLM response
 #' @param item_type Character string with the item type
-#' 
+#'
 #' @return Data frame with type, attribute, statement columns
 #' @keywords internal
 cleaning_function <- function(raw_text, item_type) {
-  
+
   result_df <- data.frame(
     type = character(),
     attribute = character(),
     statement = character(),
     stringsAsFactors = FALSE
   )
-  
+
   if (is.null(raw_text) || nchar(trimws(raw_text)) == 0) {
     return(result_df)
   }
-  
+
   # Try JSON parsing first
   json_result <- tryCatch({
     # Remove markdown code fences if present
     clean_text <- raw_text
     clean_text <- gsub("```json\\s*", "", clean_text)
     clean_text <- gsub("```\\s*", "", clean_text)
-    
+
     # Find JSON array in response ((?s) makes . match newlines)
     json_match <- regmatches(clean_text, regexpr("(?s)\\[.*\\]", clean_text, perl = TRUE))
-    
+
     if (length(json_match) > 0 && nchar(json_match) > 2) {
       parsed <- jsonlite::fromJSON(json_match, flatten = TRUE)
-      
+
       if (is.data.frame(parsed) && "attribute" %in% names(parsed) && "statement" %in% names(parsed)) {
         data.frame(
           type = item_type,
@@ -467,18 +509,18 @@ cleaning_function <- function(raw_text, item_type) {
       NULL
     }
   }, error = function(e) NULL)
-  
+
   if (!is.null(json_result) && nrow(json_result) > 0) {
     # Filter out empty statements
     json_result <- json_result[nchar(json_result$statement) > 5, ]
     return(json_result)
   }
-  
+
   # Fallback: text parsing
   lines <- strsplit(raw_text, "\n")[[1]]
   lines <- trimws(lines)
   lines <- lines[nchar(lines) > 0]
-  
+
   for (line in lines) {
     # Try to extract numbered items
     # Pattern: "1. [attribute]: statement" or "1) attribute - statement"
@@ -487,17 +529,17 @@ cleaning_function <- function(raw_text, item_type) {
       "^\\*\\s*\\[?([^\\]:\\-]+)\\]?[:\\-]\\s*(.+)$",
       "^[\\-•]\\s*\\[?([^\\]:\\-]+)\\]?[:\\-]\\s*(.+)$"
     )
-    
+
     for (pattern in patterns) {
       match <- regmatches(line, regexec(pattern, line, perl = TRUE))[[1]]
       if (length(match) == 3) {
         attribute <- trimws(tolower(match[2]))
         statement <- trimws(match[3])
-        
+
         # Clean statement
         statement <- gsub('^["\']|["\']$', '', statement)
         statement <- gsub("\\s+", " ", statement)
-        
+
         if (nchar(statement) > 5) {
           result_df <- rbind(result_df, data.frame(
             type = item_type,
@@ -510,38 +552,38 @@ cleaning_function <- function(raw_text, item_type) {
       }
     }
   }
-  
+
   return(result_df)
 }
 
 #' Construct Item Examples String for Prompts
-#' 
+#'
 #' @description
 #' Formats previous items as JSON for inclusion in prompts.
-#' 
+#'
 #' @param item.examples Data frame with previous items
 #' @param current_type Character string with current item type
-#' 
+#'
 #' @return JSON-formatted string or NULL
 #' @keywords internal
 construct_item.examples_string <- function(item.examples, current_type) {
-  
+
   # Filter by type if available
   if ("type" %in% names(item.examples)) {
     filtered <- item.examples[tolower(item.examples$type) == tolower(current_type), ]
   } else {
     filtered <- item.examples
   }
-  
+
   if (nrow(filtered) == 0) return(NULL)
-  
+
   # Build simplified data frame
   df <- data.frame(
     attribute = as.character(filtered$attribute),
     statement = as.character(filtered$statement),
     stringsAsFactors = FALSE
   )
-  
+
   # Convert to JSON
   jsonlite::toJSON(df, auto_unbox = TRUE)
 }

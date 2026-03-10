@@ -90,8 +90,9 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
         }
       }
 
-      # Generate text — first attempt with 'max_tokens'; if the model requires
-      # 'max_completion_tokens' instead, catch that specific error and retry.
+      # Generate text via the provider-dispatched LLM call.
+      # Token-type fallback (max_tokens vs max_completion_tokens) is handled
+      # internally by generate_text_llm().
       raw_text <- tryCatch({
         generate_text_llm(
           prompt = current_prompt,
@@ -105,30 +106,8 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
           anthropic.API = anthropic.API
         )
       }, error = function(e) {
-        # Some models require 'max_completion_tokens' instead of 'max_tokens'
-        if (grepl("max_tokens", conditionMessage(e), fixed = TRUE) &&
-            grepl("max_completion_tokens", conditionMessage(e), fixed = TRUE)) {
-          if (!silently) cat("Retrying with 'max_completion_tokens' parameter...\n")
-          tryCatch({
-            generate_text_llm(
-              prompt = current_prompt,
-              system.role = system.role,
-              model = model,
-              temperature = temperature,
-              top.p = top.p,
-              max_completion_tokens = 2048L,
-              openai.API = openai.API,
-              groq.API = groq.API,
-              anthropic.API = anthropic.API
-            )
-          }, error = function(e2) {
-            if (!silently) cat("Generation error:", conditionMessage(e2), "\n")
-            NULL
-          })
-        } else {
-          if (!silently) cat("Generation error:", conditionMessage(e), "\n")
-          NULL
-        }
+        if (!silently) cat("Generation error:", conditionMessage(e), "\n")
+        NULL
       })
 
       if (is.null(raw_text)) {
@@ -312,7 +291,7 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
         next
       }
 
-      # Generate — first attempt with 'max_tokens'; if the model requires
+      # Generate -- first attempt with 'max_tokens'; if the model requires
       # 'max_completion_tokens' instead, catch that specific error and retry.
       raw_text <- tryCatch({
         response <- llm(
@@ -527,7 +506,7 @@ cleaning_function <- function(raw_text, item_type) {
     patterns <- list(
       "^\\d+[.)]\\s*\\[?([^\\]:\\-]+)\\]?[:\\-]\\s*(.+)$",
       "^\\*\\s*\\[?([^\\]:\\-]+)\\]?[:\\-]\\s*(.+)$",
-      "^[\\-•]\\s*\\[?([^\\]:\\-]+)\\]?[:\\-]\\s*(.+)$"
+      "^[\\-*]\\s*\\[?([^\\]:\\-]+)\\]?[:\\-]\\s*(.+)$"
     )
 
     for (pattern in patterns) {

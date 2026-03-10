@@ -39,7 +39,7 @@ A modified list of character strings, with each prompt updated to include releva
 This function appends structured context and formatting instructions to a list of main prompts
 used for item generation. It ensures that each prompt includes relevant domain information,
 audience guidance, scale definitions, JSON formatting rules, and optionally example items or
-critical author notes — but only if these elements are not already present in the prompt
+critical author notes -- but only if these elements are not already present in the prompt
 (checked case-insensitively and with whitespace trimmed).
 }
 \keyword{internal}

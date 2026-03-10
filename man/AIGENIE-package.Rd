@@ -3,9 +3,9 @@
 \docType{package}
 \name{AIGENIE-package}
 \alias{AIGENIE-package}
-\title{AIGENIE: Automatic Item Generation and Validation (Structural Validity) with Network-Integrated Evaluation. AI-Guided Exploration and Network Inference for Items and Embeddings.}
+\title{AIGENIE: Automatic Item Generation and Validation via Network-Integrated Evaluation}
 \description{
-AIGENIE is an R package for automated psychological scale development and structural validation using large language models (LLMs) and network psychometric methods. The package implements the AI-GENIE framework (Automatic Item Generation and Validation via Network-Integrated Evaluation) to generate candidate items, compute embedding representations, and estimate dimensional structure using Exploratory Graph Analysis (EGA). Item quality is further evaluated using Unique Variable Analysis to identify redundant items and Bootstrap EGA to assess item and dimension stability. AI-GENIE supports both fully automated item generation and analysis of user-provided item sets, facilitating efficient, theory-informed measurement development prior to empirical data collection.
+Automated psychological scale development and structural validation using large language models (LLMs) and network psychometric methods. Implements the AI-GENIE framework (Automatic Item Generation and Validation via Network-Integrated Evaluation) to generate candidate items, compute embedding representations, and estimate dimensional structure using Exploratory Graph Analysis (EGA). Item quality is evaluated using Unique Variable Analysis to identify redundant items and Bootstrap EGA to assess item and dimension stability. Supports both fully automated item generation and analysis of user-provided item sets, facilitating efficient, theory-informed measurement development prior to empirical data collection.
 
 AIGENIE is an R package for automated psychological scale development and structural validation using large language models (LLMs) and network psychometric methods. The package implements the AI-GENIE framework (Automatic Item Generation and Validation via Network-Integrated Evaluation) to generate candidate items, compute embedding representations, and estimate dimensional structure using Exploratory Graph Analysis (EGA). Item quality is further evaluated using Unique Variable Analysis to identify redundant items and Bootstrap EGA to assess item and dimension stability. AI-GENIE supports both fully automated item generation and analysis of user-provided item sets, facilitating efficient, theory-informed measurement development prior to empirical data collection.
 }
@@ -163,9 +163,16 @@ A simulation and tutorial.
 \emph{Psychological Methods}, \emph{25}, 292-320. \cr
 }
 \seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/laralee/AIGENIE}
+  \item Report bugs at \url{https://github.com/laralee/AIGENIE/issues}
+}
+
+
 \code{\link{AIGENIE}} for the main function,
 \code{\link{GENIE}} for embedding-only analysis,
-\code{\link{EGAnet}} for the underlying EGA analysis methods.
+\code{\link[EGAnet:EGAnet-package]{EGAnet}} for the underlying EGA analysis methods.
 }
 \author{
 \strong{Maintainer}: Lara Russell-Lasalandra \email{llr7cb@virginia.edu} (\href{https://orcid.org/0009-0000-3014-1937}{ORCID})

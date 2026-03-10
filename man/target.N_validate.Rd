@@ -29,8 +29,8 @@ A list of integers, one per attribute (named).
 \description{
 Ensures that \code{target.N} is either:
 \itemize{
-\item NULL → defaults to 60 per attribute
-\item A single integer → repeated for each attribute
-\item A list/vector of integers → must match number of attributes
+\item NULL -> defaults to 60 per attribute
+\item A single integer -> repeated for each attribute
+\item A list/vector of integers -> must match number of attributes
 }
 }

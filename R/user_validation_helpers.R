@@ -107,7 +107,7 @@ items.attributes_validate <- function(items.attributes) {
     dups <- unique(nm_norm[duplicated(nm_norm)])
     msg_lines <- lapply(dups, function(key) {
       originals <- nm[nm_norm == key]
-      paste0("• Names ", paste(sprintf("`%s`", originals), collapse = ", "),
+      paste0("* Names ", paste(sprintf("`%s`", originals), collapse = ", "),
              " normalize to `", key, "`")
     })
     stop(
@@ -318,12 +318,12 @@ item.examples_validate <- function(item.examples, items.attributes) {
   if (length(bad_rows) > 0) {
     max_show <- min(length(bad_rows), 10)
     preview <- paste0(
-      "• Row ", bad_rows[1:max_show], ": type = `",
+      "* Row ", bad_rows[1:max_show], ": type = `",
       item.examples$type[bad_rows[1:max_show]], "`, attribute = `",
       item.examples$attribute[bad_rows[1:max_show]], "`"
     )
     extra <- if (length(bad_rows) > max_show) {
-      paste0("\n… and ", length(bad_rows) - max_show, " more row(s).")
+      paste0("\n... and ", length(bad_rows) - max_show, " more row(s).")
     } else ""
 
     stop(
@@ -389,7 +389,7 @@ item.type.definitions_validate <- function(item.type.definitions, items.attribut
     dups <- unique(names_norm[duplicated(names_norm)])
     msg_lines <- lapply(dups, function(key) {
       originals <- names_raw[names_norm == key]
-      paste0("• Names ", paste(sprintf("`%s`", originals), collapse = ", "),
+      paste0("* Names ", paste(sprintf("`%s`", originals), collapse = ", "),
              " normalize to `", key, "`")
     })
     stop(
@@ -675,7 +675,7 @@ normalize_model_name <- function(model, groq.API = NULL, openai.API = NULL,
 #' Allowed Jina AI models:
 #'   - jina-embeddings-v4, jina-embeddings-v3, jina-clip-v2
 #'   - jina-code-embeddings-1.5b, jina-code-embeddings-0.5b
-#'   - jina-embeddings-v2-base-{en,zh,de,es,code}, jina-embeddings-v2-small-en
+#'   - jina-embeddings-v2-base-en/zh/de/es/code, jina-embeddings-v2-small-en
 #'
 #' Allowed HuggingFace models:
 #'   - BAAI/bge series (bge-small-en-v1.5, bge-base-en-v1.5, bge-large-en-v1.5)
@@ -684,7 +684,7 @@ normalize_model_name <- function(model, groq.API = NULL, openai.API = NULL,
 #' @param embedding.model A string.
 #' @param provider One of "auto", "openai", "jina", "huggingface", or "local".
 #'
-embedding.model_validate <- function(embedding.model, provider = "auto") {
+embedding.model_validate <- function(embedding.model, provider = "auto", hf.token = NULL) {
 
   if (!is.character(embedding.model) || length(embedding.model) != 1 || is.na(embedding.model)) {
     stop(
@@ -761,7 +761,7 @@ embedding.model_validate <- function(embedding.model, provider = "auto") {
       stop(
         paste0(
           "AI-GENIE expects OpenAI embedding.model to be one of:\n",
-          paste(sprintf("  • %s", openai_models), collapse = "\n"),
+          paste(sprintf("  * %s", openai_models), collapse = "\n"),
           "\n\nReceived: '", embedding.model, "'"
         ),
         call. = FALSE
@@ -786,9 +786,9 @@ embedding.model_validate <- function(embedding.model, provider = "auto") {
         paste0(
           "Model '", embedding.model, "' has known compatibility issues.\n",
           "Please use one of these alternatives:\n",
-          "  • BAAI/bge-base-en-v1.5\n",
-          "  • google/embeddinggemma-300m\n",
-          "  • thenlper/gte-base"
+          "  * BAAI/bge-base-en-v1.5\n",
+          "  * google/embeddinggemma-300m\n",
+          "  * thenlper/gte-base"
         ),
         call. = FALSE
       )
@@ -819,9 +819,9 @@ embedding.model_validate <- function(embedding.model, provider = "auto") {
       paste0(
         "Model '", embedding.model, "' has not been tested with AI-GENIE.\n",
         "If it doesn't work, try one of these confirmed models:\n",
-        "  • BAAI/bge-base-en-v1.5\n",
-        "  • google/embeddinggemma-300m (requires HF token)\n",
-        "  • thenlper/gte-base"
+        "  * BAAI/bge-base-en-v1.5\n",
+        "  * google/embeddinggemma-300m (requires HF token)\n",
+        "  * thenlper/gte-base"
       ),
       immediate. = TRUE
     )
@@ -1013,9 +1013,9 @@ run_flags_validate <- function(run.overall, all.together, item.attributes,
 #' Validate and Expand `target.N` for Each Item Attribute
 #'
 #' Ensures that `target.N` is either:
-#'   - NULL → defaults to 60 per attribute
-#'   - A single integer → repeated for each attribute
-#'   - A list/vector of integers → must match number of attributes
+#'   - NULL -> defaults to 60 per attribute
+#'   - A single integer -> repeated for each attribute
+#'   - A list/vector of integers -> must match number of attributes
 #'
 #' @param target.N An integer, list/vector of integers, or NULL.
 #' @param items.attributes A cleaned list returned from `validate_items.attributes()`.
@@ -1029,7 +1029,7 @@ target.N_validate <- function(target.N, items.attributes, items.only, embeddings
   attr_names <- names(items.attributes)
   norm_str <- function(x) trimws(tolower(x))
 
-  # --- Case: NULL → default to 60s ---
+  # --- Case: NULL -> default to 60s ---
   if (is.null(target.N)) {
     default_list <- setNames(as.list(rep(60L, n_attr)), attr_names)
     target.N <- default_list
@@ -1040,7 +1040,7 @@ target.N_validate <- function(target.N, items.attributes, items.only, embeddings
     is.numeric(x) && length(x) == 1 && !is.na(x) && x == as.integer(x)
   }
 
-  # --- Case: single integer → expand it ---
+  # --- Case: single integer -> expand it ---
   if (is_scalar_int(target.N)) {
     target.N <- setNames(as.list(rep(as.integer(target.N), n_attr)), attr_names)
   }
@@ -1206,12 +1206,12 @@ validate_prompt.notes <- function(prompt.notes, items.attributes) {
   n_attr <- length(attr_names)
   norm_str <- function(x) trimws(tolower(x))
 
-  # --- Case: NULL → return empty string for each attr ---
+  # --- Case: NULL -> return empty string for each attr ---
   if (is.null(prompt.notes)) {
     return(setNames(as.list(rep("", n_attr)), attr_names))
   }
 
-  # --- Case: single string → repeat for each attr ---
+  # --- Case: single string -> repeat for each attr ---
   if (is.character(prompt.notes) && length(prompt.notes) == 1 && !is.na(prompt.notes)) {
     return(setNames(as.list(rep(prompt.notes, n_attr)), attr_names))
   }

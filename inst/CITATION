@@ -1,0 +1,45 @@
+bibentry(
+  bibtype  = "Misc",
+  title    = "Generative Psychometrics via AI-GENIE: Automatic Item Generation with Network-Integrated Evaluation",
+  author   = c(
+    person("Lara L.", "Russell-Lasalandra"),
+    person("Alexander P.", "Christensen"),
+    person("Hudson", "Golino")
+  ),
+  year     = "2025",
+  month    = "August",
+  day      = "29",
+  publisher = "PsyArXiv",
+  doi      = "10.31234/osf.io/fgbj4_v2",
+  url      = "https://doi.org/10.31234/osf.io/fgbj4_v2",
+  header   = "To cite AIGENIE in publications, use:",
+  textVersion = paste(
+    "Russell-Lasalandra, L. L., Christensen, A. P., & Golino, H. (2025, August 29).",
+    "Generative Psychometrics via AI-GENIE: Automatic Item Generation with",
+    "Network-Integrated Evaluation.",
+    "https://doi.org/10.31234/osf.io/fgbj4_v2"
+  )
+)
+
+bibentry(
+  bibtype  = "Misc",
+  title    = "Estimating Dimensional Structure in Generative Psychometrics: Comparing PCA and Network Methods Using Large Language Model Item Embeddings",
+  author   = c(
+    person("Luis", "Garrido"),
+    person("Lara L.", "Russell-Lasalandra"),
+    person("Hudson", "Golino")
+  ),
+  year     = "2025",
+  month    = "December",
+  day      = "30",
+  publisher = "PsyArXiv",
+  doi      = "10.31234/osf.io/2s7pw_v1",
+  url      = "https://doi.org/10.31234/osf.io/2s7pw_v1",
+  header   = "For the embedding dimensionality comparison, cite:",
+  textVersion = paste(
+    "Garrido, L., Russell-Lasalandra, L. L., & Golino, H. (2025, December 30).",
+    "Estimating Dimensional Structure in Generative Psychometrics: Comparing PCA and",
+    "Network Methods Using Large Language Model Item Embeddings.",
+    "https://doi.org/10.31234/osf.io/2s7pw_v1"
+  )
+)

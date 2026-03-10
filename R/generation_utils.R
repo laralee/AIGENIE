@@ -137,7 +137,7 @@ create_main.prompts <- function(item.attributes, item.type.definitions,
       ". Generate EXACTLY TWO items PER attribute. Use the ",length(attributes)," attributes EXACTLY as provided; do NOT add your own or leave any out." ,
       "\nEACH item should be ROBUST, NOVEL, and UNIQUE. These items must be top-quality.\n",
       "Return output STRICTLY as a JSON array of objects, each with keys `attribute` and `statement`, e.g.:\n",
-      "[{\"attribute\":\"", item.attributes[[current_type]][1], "\",\"statement\":\"Your item here.\"}, …]\n",
+      "[{\"attribute\":\"", item.attributes[[current_type]][1], "\",\"statement\":\"Your item here.\"}, ...]\n",
       "This JSON formatting is EXTREMELY important. ONLY output the items in this formatting; DO NOT include any other text in your response.",
       ifelse(is.null(examples_str), "", paste0("\n\nTo better help you understand how EXACTLY to phrase/constuct your items,",
                " here are some EXAMPLE high-quality items that already exist on the scale that you MUST",
@@ -193,7 +193,7 @@ construct_item.examples_string_for_prompt <- function(item.examples, current_typ
 #' This function appends structured context and formatting instructions to a list of main prompts
 #' used for item generation. It ensures that each prompt includes relevant domain information,
 #' audience guidance, scale definitions, JSON formatting rules, and optionally example items or
-#' critical author notes — but only if these elements are not already present in the prompt
+#' critical author notes -- but only if these elements are not already present in the prompt
 #' (checked case-insensitively and with whitespace trimmed).
 #'
 #' @param main.prompts A named list of character strings, where each element is a prompt associated with an item type.
@@ -295,7 +295,7 @@ modify_main.prompts <- function(main.prompts, item.attributes,
     # JSON format instruction (always added unless already present)
     json_format_str <- paste0(
       "\n\nReturn output STRICTLY as a JSON array of objects, each with keys `attribute` and `statement`, e.g.:\n",
-      "[{\"attribute\":\"", item.attributes[[current_type]][1], "\",\"statement\":\"Your item here.\"}, …]\n",
+      "[{\"attribute\":\"", item.attributes[[current_type]][1], "\",\"statement\":\"Your item here.\"}, ...]\n",
       "This JSON formatting is EXTREMELY important. ONLY output the items in this formatting; DO NOT include any other text in your response."
     )
     if (already_present(prompt, "`attribute`") || already_present(prompt, "Return output STRICTLY")) {

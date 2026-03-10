@@ -78,13 +78,7 @@ If only one item type is present, this argument will be ignored.}
 
 \item{silently}{If \code{TRUE}, suppress progress messages}
 
-\item{groq.API}{Groq API key (currently unused in GENIE)}
-
 \item{model}{Language model identifier (currently unused in GENIE)}
-
-\item{temperature}{LLM temperature (currently unused in GENIE)}
-
-\item{top.p}{LLM top-p parameter (currently unused in GENIE)}
 }
 \value{
 The structure of the return value depends on the function flags.

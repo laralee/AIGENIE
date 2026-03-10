@@ -290,7 +290,7 @@ embedding_matrix_validate_GENIE <- function(embedding.matrix, items, silently = 
     stop(
       paste0(
         "GENIE expects embedding.matrix to have at least one row and one column.\n",
-        "Current dimensions: ", nrow(embedding.matrix), " rows × ", ncol(embedding.matrix), " columns"
+        "Current dimensions: ", nrow(embedding.matrix), " rows x ", ncol(embedding.matrix), " columns"
       ),
       call. = FALSE
     )
@@ -415,7 +415,7 @@ embedding_matrix_validate_GENIE <- function(embedding.matrix, items, silently = 
   if (!silently) {
     message(paste0(
       "Embedding matrix validated: ",
-      n_dims, " dimensions × ",
+      n_dims, " dimensions x ",
       n_items, " items"
     ))
   }

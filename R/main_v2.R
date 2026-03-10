@@ -1165,12 +1165,9 @@ local_AIGENIE <- function(
 #'
 #' @param openai.API OpenAI API key (required if using OpenAI embedding models)
 #' @param hf.token HuggingFace token (optional, improves rate limits for HF models)
-#' @param groq.API Groq API key (currently unused in GENIE)
 #' @param jina.API Jina AI API key for using Jina embedding models (e.g., "jina-embeddings-v3").
 #'   Free tier available at \url{https://jina.ai/}.
 #' @param model Language model identifier (currently unused in GENIE)
-#' @param temperature LLM temperature (currently unused in GENIE)
-#' @param top.p LLM top-p parameter (currently unused in GENIE)
 #' @param embedding.model Embedding model to use if embedding.matrix not provided:
 #'   \itemize{
 #'     \item OpenAI: "text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"

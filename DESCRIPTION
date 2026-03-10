@@ -1,18 +1,45 @@
 Package: AIGENIE
 Type: Package
-Title: Automatic Item Generation and Validation (Structural Validity) with Network-Integrated Evaluation. AI-Guided Exploration and Network Inference for Items and Embeddings.
+Title: Automatic Item Generation and Validation via Network-Integrated
+    Evaluation
 Version: 2.1.0
+Date: 2026-03-10
 Authors@R: c(
-    person("Lara", "Russell-Lasalandra", email = "llr7cb@virginia.edu", role = "cre",
-           comment = c(ORCID = "0009-0000-3014-1937")),
+    person("Lara", "Russell-Lasalandra", email = "llr7cb@virginia.edu",
+           role = "cre", comment = c(ORCID = "0009-0000-3014-1937")),
     person("Alexander", "Christensen", role = "aut",
            comment = c(ORCID = "0000-0002-9798-7037")),
     person("Hudson", "Golino", role = "aut",
            comment = c(ORCID = "0000-0002-1601-1447"))
-           )
-Description: AIGENIE is an R package for automated psychological scale development and structural validation using large language models (LLMs) and network psychometric methods. The package implements the AI-GENIE framework (Automatic Item Generation and Validation via Network-Integrated Evaluation) to generate candidate items, compute embedding representations, and estimate dimensional structure using Exploratory Graph Analysis (EGA). Item quality is further evaluated using Unique Variable Analysis to identify redundant items and Bootstrap EGA to assess item and dimension stability. AI-GENIE supports both fully automated item generation and analysis of user-provided item sets, facilitating efficient, theory-informed measurement development prior to empirical data collection. 
-License: AGPL (>= 3.0)
+    )
+Description: Automated psychological scale development and structural
+    validation using large language models (LLMs) and network psychometric
+    methods. Implements the AI-GENIE framework (Automatic Item Generation
+    and Validation via Network-Integrated Evaluation) to generate candidate
+    items, compute embedding representations, and estimate dimensional
+    structure using Exploratory Graph Analysis (EGA). Item quality is
+    evaluated using Unique Variable Analysis to identify redundant items
+    and Bootstrap EGA to assess item and dimension stability. Supports
+    both fully automated item generation and analysis of user-provided
+    item sets, facilitating efficient, theory-informed measurement
+    development prior to empirical data collection.
+License: AGPL (>= 3)
 Encoding: UTF-8
-Depends: R (>= 3.6.0), reticulate, EGAnet, ggplot2, igraph, patchwork, tm, R.utils, jsonlite
+Depends:
+    R (>= 3.6.0),
+    EGAnet
+Imports:
+    reticulate,
+    ggplot2,
+    igraph,
+    patchwork,
+    jsonlite
+Suggests:
+    testthat (>= 3.0.0),
+    tictoc
+URL: https://github.com/laralee/AIGENIE
+BugReports: https://github.com/laralee/AIGENIE/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Config/testthat/edition: 3
+

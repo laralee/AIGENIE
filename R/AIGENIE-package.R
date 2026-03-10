@@ -1,4 +1,15 @@
 #' @keywords internal
+#' @importFrom ggplot2 labs theme element_text
+#' @importFrom patchwork plot_annotation
+#' @importFrom igraph compare
+#' @importFrom jsonlite fromJSON toJSON
+#' @importFrom reticulate import py_available py_module_available
+#'   py_to_r py_run_string use_python py_install virtualenv_create
+#'   virtualenv_list virtualenv_remove virtualenv_python use_virtualenv
+#'   py_eval r_to_py import_from_path py_capture_output
+#' @importFrom stats cor quantile setNames var
+#' @importFrom utils flush.console head tail
+#' @import EGAnet
 "_PACKAGE"
 
 #' AIGENIE: Automatic Item Generation and Validation (Structural Validity) with Network-Integrated Evaluation. AI-Guided Exploration and Network Inference for Items and Embeddings.
@@ -150,7 +161,7 @@
 #' @seealso
 #' \code{\link{AIGENIE}} for the main function,
 #' \code{\link{GENIE}} for embedding-only analysis,
-#' \code{\link{EGAnet}} for the underlying EGA analysis methods.
+#' \code{\link[EGAnet:EGAnet-package]{EGAnet}} for the underlying EGA analysis methods.
 #'
 #' @name AIGENIE-package
 NULL

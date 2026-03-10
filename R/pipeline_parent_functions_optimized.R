@@ -87,7 +87,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   uva_res <- reduce_redundancy_uva(embedding_matrix, items, corr = corr)
 
   if (!uva_res$success) {
-    warning("[", type_name, "] UVA failed — returning partial result.")
+    warning("[", type_name, "] UVA failed -- returning partial result.")
     return(result)
   }
 
@@ -129,7 +129,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   )
 
   if (!isTRUE(select_res$success)) {
-    warning("[", type_name, "] Model selection failed — returning partial result.")
+    warning("[", type_name, "] Model selection failed -- returning partial result.")
     return(result)
   }
 
@@ -163,7 +163,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   )
 
   if (!boot_res$successful) {
-    warning("[", type_name, "] BootEGA failed — returning partial result.")
+    warning("[", type_name, "] BootEGA failed -- returning partial result.")
     return(result)
   }
 
@@ -186,7 +186,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   )
 
   if (!isTRUE(final_res$success)) {
-    warning("[", type_name, "] Final EGA failed — returning partial result.")
+    warning("[", type_name, "] Final EGA failed -- returning partial result.")
     return(result)
   }
 
@@ -224,7 +224,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   )
 
   if (!isTRUE(initial_res$success)) {
-    warning("[", type_name, "] Initial EGA failed — returning partial result.")
+    warning("[", type_name, "] Initial EGA failed -- returning partial result.")
     return(result)
   }
 
@@ -367,7 +367,7 @@ run_item_reduction_pipeline <- function(embedding_matrix,
         plot = plot
       )
     }, error = function(e) {
-      warning("Pipeline failed for type: ", tname, " — ", e$message)
+      warning("Pipeline failed for type: ", tname, " -- ", e$message)
       success <<- FALSE
       return(NULL)
     })
@@ -483,7 +483,7 @@ run_pipeline_for_all <- function(item_level,
   )
 
   if (!isTRUE(select_res$success)) {
-    warning("Building the final overall EGA network has failed — returning partial result.")
+    warning("Building the final overall EGA network has failed -- returning partial result.")
     success <- FALSE
     return(list(overall_result = overall_result,
                 success = success))
@@ -537,7 +537,7 @@ run_pipeline_for_all <- function(item_level,
   )
 
   if (!isTRUE(initial_res$success)) {
-    warning("EGA failed on all items in the initial item pool — returning partial result.")
+    warning("EGA failed on all items in the initial item pool -- returning partial result.")
     success <- FALSE
     return(list(overall_result = overall_result,
                 success = success))

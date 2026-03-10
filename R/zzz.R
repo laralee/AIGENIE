@@ -827,10 +827,12 @@ set_huggingface_token <- function(token, save = TRUE) {
 
 #' @keywords internal
 .onLoad <- function(libname, pkgname) {
-  # Set initialization flags to FALSE
+  # Set initialization flags
   options(aigenie.python_initialized = FALSE)
   options(aigenie.python_local_initialized = FALSE)
+}
 
+.onAttach <- function(libname, pkgname) {
   # Check for old conda environment and suggest cleanup
   tryCatch({
     if (requireNamespace("reticulate", quietly = TRUE)) {
@@ -843,7 +845,7 @@ set_huggingface_token <- function(token, save = TRUE) {
       }
     }
   }, error = function(e) {
-    # Silently ignore errors during load
+    # Silently ignore errors during attach
   })
 
   packageStartupMessage(

@@ -4,9 +4,9 @@
 \alias{embedding.model_validate}
 \title{Validate and Detect Embedding Model Provider}
 \usage{
-embedding.model_validate(embedding.model, provider = "auto")
+embedding.model_validate(embedding.model, provider = "auto", hf.token = NULL)
 
-embedding.model_validate(embedding.model, provider = "auto")
+embedding.model_validate(embedding.model, provider = "auto", hf.token = NULL)
 }
 \arguments{
 \item{embedding.model}{A string.}
@@ -34,7 +34,7 @@ Allowed Jina AI models:
 \itemize{
 \item jina-embeddings-v4, jina-embeddings-v3, jina-clip-v2
 \item jina-code-embeddings-1.5b, jina-code-embeddings-0.5b
-\item jina-embeddings-v2-base-{en,zh,de,es,code}, jina-embeddings-v2-small-en
+\item jina-embeddings-v2-base-en/zh/de/es/code, jina-embeddings-v2-small-en
 }
 
 Allowed HuggingFace models:

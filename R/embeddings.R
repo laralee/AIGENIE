@@ -887,5 +887,5 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 }
 
 #' Null-coalescing operator
-#' @keywords internal
+#' @noRd
 `%||%` <- function(x, y) if (is.null(x)) y else x

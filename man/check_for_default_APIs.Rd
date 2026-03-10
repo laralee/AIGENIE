@@ -6,7 +6,7 @@
 \usage{
 check_for_default_APIs(
   hf.token,
-  groq.API,
+  groq.API = NULL,
   openai.API,
   anthropic.API = NULL,
   jina.API = NULL

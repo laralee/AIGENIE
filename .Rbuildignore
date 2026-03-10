@@ -1,2 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^LICENSE$
+^NEWS\.md$
+^README\.md$
+^\.github$
+^fix_repo_structure\.R$

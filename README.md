@@ -1,7 +1,7 @@
 <img src="inst/AIGENIE_hex.png" align="right" width="180"/>
 
 <div id="badges">
-
+<a href="https://laralee.r-universe.dev/AIGENIE"><img src="https://laralee.r-universe.dev/badges/AIGENIE" alt="r-universe version"/></a>
 <a href="https://github.com/laralee/AIGENIE/releases"><img src="https://img.shields.io/github/v/release/laralee/AIGENIE" alt="GitHub version"/></a>
 <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active"/></a>
 <a href="https://github.com/laralee/AIGENIE"><img src="https://img.shields.io/github/last-commit/laralee/AIGENIE" alt="Last commit"/></a>
@@ -111,7 +111,7 @@ install.packages("remotes")
 Install the development version from GitHub:
 
 ```r
-remotes::install_github("laralee/AIGENIE")
+install.packages("AIGENIE", repos = "https://laralee.r-universe.dev")
 ```
 
 ---

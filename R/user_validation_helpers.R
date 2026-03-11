@@ -603,7 +603,16 @@ normalize_model_name <- function(model, groq.API = NULL, openai.API = NULL,
   }
 
   # HuggingFace patterns (org/model format without prefix)
+  # Slash-style models (org/model) — route to Groq if groq.API is provided
   if (grepl("/", resolved_model) && !grepl("^(openai|groq|anthropic)/", model_lower_check)) {
+    if (!is.null(groq.API)) {
+      normalized <- resolved_model
+      if (!silently) {
+        message(sprintf("Model '%s' routed to Groq (slash-style model with groq.API provided)",
+                        original_model))
+      }
+      return(list(model = normalized, provider = "groq"))
+    }
     stop(paste0(
       "Model '", original_model, "' appears to be a HuggingFace model.\n",
       "HuggingFace text generation is not supported via the free API.\n\n",

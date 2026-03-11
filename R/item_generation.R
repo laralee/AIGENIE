@@ -472,6 +472,11 @@ cleaning_function <- function(raw_text, item_type) {
     json_match <- regmatches(clean_text, regexpr("(?s)\\[.*\\]", clean_text, perl = TRUE))
 
     if (length(json_match) > 0 && nchar(json_match) > 2) {
+      # Repair common LLM JSON malformations
+      json_match <- gsub("\\{\\s*\\[\\s*\"", '{"', json_match)
+      json_match <- gsub("\"\\s*\\]\\s*\\}", '"}', json_match)
+      json_match <- gsub(",\\s*\\]", "]", json_match)
+
       parsed <- jsonlite::fromJSON(json_match, flatten = TRUE)
 
       if (is.data.frame(parsed) && "attribute" %in% names(parsed) && "statement" %in% names(parsed)) {

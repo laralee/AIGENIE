@@ -241,6 +241,29 @@ results <- AIGENIE(
 
 # Supported Models
 
+Model availability changes as providers update their catalogs. You can query the current list of available models directly:
+
+```r
+# Per-provider queries
+list_available_models("openai",    openai.API = openai_key)
+list_available_models("groq",      groq.API = groq_key)
+list_available_models("anthropic", anthropic.API = anthropic_key)
+list_available_models("jina")
+
+# All providers at once
+list_available_models(
+  openai.API    = openai_key,
+  groq.API      = groq_key,
+  anthropic.API = anthropic_key
+)
+
+# Filter by type
+list_available_models(openai.API = openai_key, type = "chat")
+list_available_models(openai.API = openai_key, type = "embedding")
+```
+
+Below is a reference snapshot of commonly used models and their aliases.
+
 ### Chat Models
 
 | Provider | Models | Aliases |
@@ -285,8 +308,8 @@ Russell-Lasalandra, L. L., Christensen, A. P., & Golino, H. (2025, August 29). G
 Garrido, L., Russell-Lasalandra, L. L., & Golino, H. (2025, December 30). Estimating Dimensional Structure in Generative Psychometrics: Comparing PCA and Network Methods Using Large Language Model Item Embeddings. [https://doi.org/10.31234/osf.io/2s7pw_v1](https://doi.org/10.31234/osf.io/2s7pw_v1)
 + Related functions: `AIGENIE`, `GENIE`
 
-Golino, H. (2026). Optimizing the Landscape of LLM Embeddings with Dynamic Exploratory Graph Analysis for Generative Psychometrics: A Monte Carlo Study. *arXiv*. arXiv:2601.17010. [https://doi.org/10.48550/arXiv.2601.17010](https://doi.org/10.48550/arXiv.2601.17010)
-+ Related functions: `AIGENIE`
+Golino, H., Garrido, L., & Russell-Lasalandra, L. L. (2026). Optimizing the Landscape of LLM Embeddings with Dynamic Exploratory Graph Analysis for Generative Psychometrics: A Monte Carlo Study. *arXiv*. arXiv:2601.17010. [https://doi.org/10.48550/arXiv.2601.17010](https://doi.org/10.48550/arXiv.2601.17010)
++ Related functions: `AIGENIE`, `GENIE`
 
 Christensen, A. P., Garrido, L. E., & Golino, H. (2023). Unique variable analysis: A network psychometrics method to detect local dependence. *Multivariate Behavioral Research*. doi:[10.1080/00273171.2023.2194606](https://doi.org/10.1080/00273171.2023.2194606)
 + Related functions: UVA step in `AIGENIE` and `GENIE`

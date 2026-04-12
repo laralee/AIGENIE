@@ -601,12 +601,13 @@ calc_final_stability <- function(result,
                                  silently,
                                  EGA.type = "EGA.fit"){
   if(!silently){
-    cat("\n")
-    cat(paste0("Finding network stability of the original item pool...\n"))
+    cat("
+")
+    cat(paste0("Finding network stability of the original item pool...
+"))
   }
 
   successful <- TRUE
-
   x <- result
 
   # Build bootEGA arguments
@@ -633,18 +634,19 @@ calc_final_stability <- function(result,
     do.call(EGAnet::bootEGA, boot_args)
   }, error = function(e) {
     warning("Stability check failed. Returning partial results.")
-    return(list(successful=FALSE))
+    successful <<- FALSE
+    return(NULL)
   })
 
+  if (is.null(try_stab)) {
+    return(list(successful = FALSE, result = x))
+  }
 
-  # Add the initial stability
   x$bootEGA$initial_boot_with_redundancies <- try_stab
-
 
   if(!silently){
     cat("Done.")
   }
-
 
   return(list(successful = successful,
               result = x))
@@ -746,28 +748,135 @@ print_results<-function(obj, obj2, run.overall){
 #' @return A plot object that visually compares the two network structures. The plot will typically display
 #'         the two networks (either side-by-side or in an overlaid manner) with the provided captions and NMI values.
 #'         The exact type of the plot object (e.g., a \code{ggplot} object or a base R plot) depends on the implementation.
-plot_comparison <- function(p1, p2, caption1, caption2, nmi2, nmi1, title){
+plot_comparison <- function(p1, p2, caption1, caption2, nmi1, nmi2, title){
 
+  make_plot <- function(x) {
+    if (inherits(x, "gg") || inherits(x, "ggplot")) {
+      return(x)
+    }
 
-    plot1 <- plot(p1) +
-      labs(caption = paste0(caption1," (NMI: ", round(nmi1,4) * 100, ")"))
+    plot(x)
+  }
 
-    plot2 <- plot(p2) +
-      labs(caption = paste0(caption2," (NMI: ", round(nmi2,4) * 100, ")"))
+  plot1 <- make_plot(p1) +
+    labs(caption = paste0(caption1, " (NMI: ", round(nmi1, 4) * 100, ")"))
 
-    combined_plot <- plot1 + plot2 +
-      plot_annotation(
-        title = title,
-        subtitle = paste0("Change in NMI: ", round((nmi2 - nmi1),4) * 100),
-        theme = theme(
-          plot.title = element_text(hjust = 0.5, size = 16),
-          plot.subtitle = element_text(hjust = 0.5, size = 12)
-        )
+  plot2 <- make_plot(p2) +
+    labs(caption = paste0(caption2, " (NMI: ", round(nmi2, 4) * 100, ")"))
+
+  combined_plot <- plot1 + plot2 +
+    patchwork::plot_annotation(
+      title = title,
+      subtitle = paste0("Change in NMI: ", round((nmi2 - nmi1), 4) * 100),
+      theme = ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, size = 16),
+        plot.subtitle = ggplot2::element_text(hjust = 0.5, size = 12)
       )
-
+    )
 
   return(combined_plot)
 }
+
+#' Build Item Stability Using a Reference EGA Structure
+#'
+#' Computes item stability from a \code{bootEGA} object while forcing the
+#' community structure to match a reference EGA solution. This ensures that
+#' the plotted stability results use the correct AIGENIE pre- or post-filtering
+#' structure rather than the empirical structure stored inside the raw
+#' \code{bootEGA} object.
+#'
+#' @param boot_obj A \code{bootEGA} object returned by \code{EGAnet::bootEGA()}.
+#' @param reference_ega An EGA object whose \code{$EGA$wc} membership vector
+#'   should define the reference structure.
+#'
+#' @return An \code{itemStability} object with attributes storing the
+#'   reference community labels and reference EGA object.
+build_item_stability_from_reference <- function(boot_obj, reference_ega) {
+
+  if (is.null(boot_obj) || is.null(reference_ega)) {
+    return(NULL)
+  }
+
+  ref_wc <- reference_ega$EGA$wc
+
+  if (is.null(ref_wc)) {
+    return(NULL)
+  }
+
+  stab <- EGAnet::itemStability(
+    bootega.obj = boot_obj,
+    structure = ref_wc,
+    IS.plot = FALSE
+  )
+
+  attr(stab, "reference_wc") <- ref_wc
+  attr(stab, "reference_ega") <- reference_ega
+
+  return(stab)
+}
+
+
+#' Plot Item Stability Using the Reference EGA Colors
+#'
+#' Generates an item stability plot whose community colors and labels are tied
+#' to a reference EGA solution rather than to the empirical EGA solution stored
+#' inside the raw \code{bootEGA} object.
+#'
+#' @param item_stability_obj An \code{itemStability} object returned by
+#'   \code{build_item_stability_from_reference()} or \code{EGAnet::itemStability()}.
+#'
+#' @return A \code{ggplot2} object representing the item stability plot.
+plot_item_stability_reference <- function(item_stability_obj) {
+
+  if (is.null(item_stability_obj)) {
+    return(NULL)
+  }
+
+  ref_ega <- attr(item_stability_obj, "reference_ega")
+  ref_wc <- attr(item_stability_obj, "reference_wc")
+
+  if (is.null(ref_ega) || is.null(ref_wc)) {
+    return(plot(item_stability_obj))
+  }
+
+  ref_plot <- tryCatch(
+    plot(ref_ega, produce = FALSE, arguments = TRUE),
+    error = function(e) NULL
+  )
+
+  ref_colors <- NULL
+
+  if (!is.null(ref_plot) &&
+      !is.null(ref_plot$ARGS) &&
+      !is.null(ref_plot$ARGS$node.color)) {
+
+    node_colors <- ref_plot$ARGS$node.color
+    node_ids <- names(ref_wc)
+
+    if (!is.null(names(node_colors))) {
+      node_colors <- node_colors[node_ids]
+    } else if (length(node_colors) == length(ref_wc)) {
+      names(node_colors) <- node_ids
+      node_colors <- node_colors[node_ids]
+    }
+
+    comm_ids <- sort(unique(as.numeric(ref_wc)))
+    ref_colors <- unname(stats::setNames(
+      vapply(comm_ids, function(k) {
+        idx <- which(as.numeric(ref_wc) == k)[1]
+        node_colors[idx]
+      }, FUN.VALUE = character(1)),
+      comm_ids
+    ))
+  }
+
+  if (is.null(ref_colors) || length(ref_colors) == 0L) {
+    return(plot(item_stability_obj))
+  }
+
+  plot(item_stability_obj, color = ref_colors)
+}
+
 
 
 
@@ -789,6 +898,12 @@ final_community_detection <- function(embedding_matrix,
                                       corr = "auto") {
 
   result <- tryCatch({
+    true_communities <- .normalize_true_communities(true_communities)
+    embedding_matrix <- .align_embedding_to_ids(
+      embedding_matrix = embedding_matrix,
+      ids = names(true_communities),
+      context = "embedding_matrix"
+    )
 
     ega <- EGAnet::EGA.fit(
       data = embedding_matrix,
@@ -805,7 +920,8 @@ final_community_detection <- function(embedding_matrix,
       stop("EGA.fit did not return community structure.")
     }
 
-    # Drop unclustered items (NA communities)
+    wc <- wc[colnames(embedding_matrix)]
+
     if (anyNA(wc)) {
       items_dropped <- names(wc)[is.na(wc)]
       wc <- wc[!is.na(wc)]
@@ -813,10 +929,15 @@ final_community_detection <- function(embedding_matrix,
       items_dropped <- character(0)
     }
 
-    # Final NMI using igraph
+    if (length(wc) < 2L) {
+      stop("Too few items assigned to communities.")
+    }
+
+    aligned_truth <- true_communities[names(wc)]
+
     final_nmi <- igraph::compare(
-      unlist(true_communities[names(wc)]),
-      wc,
+      as.vector(aligned_truth),
+      as.vector(wc),
       method = "nmi"
     )
 
@@ -829,7 +950,6 @@ final_community_detection <- function(embedding_matrix,
     )
 
   }, error = function(e) {
-
     list(
       communities   = NULL,
       final_nmi     = NA_real_,
@@ -839,9 +959,74 @@ final_community_detection <- function(embedding_matrix,
     )
   })
 
-  return(result)
+  result
 }
 
+# Internal helpers ---------------------------------------------------------
+
+.normalize_true_communities <- function(true_communities) {
+  if (is.null(true_communities)) {
+    stop("`true_communities` must not be NULL")
+  }
+
+  if (is.data.frame(true_communities) || is.matrix(true_communities)) {
+    true_communities <- as.vector(true_communities)
+  }
+
+  if (is.list(true_communities) && !is.atomic(true_communities)) {
+    true_communities <- unlist(true_communities, use.names = TRUE)
+  }
+
+  if (is.null(names(true_communities))) {
+    stop("`true_communities` must be named with item IDs")
+  }
+
+  out <- as.vector(true_communities)
+  names(out) <- names(true_communities)
+  out
+}
+
+.align_embedding_to_ids <- function(embedding_matrix, ids, context = "embedding_matrix") {
+  if (!is.matrix(embedding_matrix) || !is.numeric(embedding_matrix)) {
+    stop("`", context, "` must be a numeric matrix")
+  }
+
+  if (is.null(colnames(embedding_matrix))) {
+    stop("`", context, "` must have column names corresponding to item IDs")
+  }
+
+  keep_ids <- intersect(ids, colnames(embedding_matrix))
+
+  if (length(keep_ids) == 0L) {
+    stop("No overlapping item IDs between `", context, "` and requested IDs")
+  }
+
+  embedding_matrix[, keep_ids, drop = FALSE]
+}
+
+.subset_items_by_ids <- function(items, ids) {
+  idx <- match(ids, items$ID)
+  idx <- idx[!is.na(idx)]
+  items[idx, , drop = FALSE]
+}
+
+.attach_communities <- function(items, communities) {
+  out <- items
+  out$EGA_com <- unname(communities[match(out$ID, names(communities))])
+  out
+}
+
+.apply_embedding_type <- function(embedding_matrix, embedding_type) {
+  if (identical(embedding_type, "sparse")) {
+    sparsify_embeddings(embedding_matrix)
+  } else {
+    embedding_matrix
+  }
+}
+
+.safe_removed_n <- function(x) {
+  if (is.null(x) || nrow(x) == 0L) 0L else nrow(x)
+}
 
 #' Modify the items data frame to run the reduction on all items together
 #'
@@ -870,75 +1055,103 @@ run_all_together <- function(items){
 build_return <- function(item_type_level, overall_result,
                          run.overall, keep.org) {
 
-  if(!run.overall){
-    # Initialize containers
-    full_list <- list()
-    initial_full_list <- list()
-    sparse_list <- list()
-    initial_sparse_list <- list()
-
-    items_list <- list()
-    initial_items_list <- list()
-
-
-
-    # Loop through each sublist
-    for (i in seq_along(item_type_level)) {
-
-      embeddings <- item_type_level[[i]]$embeddings
-      items <- item_type_level[[i]]$final_items
-
-      full_list[[i]] <- embeddings$full
-      sparse_list[[i]] <- embeddings$sparse
-      items_list[[i]] <- items
-
-      if(keep.org){
-        initial_items <- item_type_level[[i]]$initial_items
-
-        initial_full_list[[i]] <- embeddings$full_org
-        initial_sparse_list[[i]] <- embeddings$sparse_org
-        initial_items_list[[i]] <- initial_items
-      }
-
-    }
-
-    # Combine all matrices column-wise
-    full <- do.call(cbind, full_list)
-    sparse <- do.call(cbind, sparse_list)
-    items <- do.call(rbind, items_list)
-
-    if(keep.org){
-      initial_full <- do.call(cbind, initial_full_list)
-      initial_sparse <- do.call(cbind, initial_sparse_list)
-      initial_items <- do.call(rbind, initial_items_list)
-    }
-  } else {
+  if (run.overall) {
     return(list(item_type_level = item_type_level,
                 overall = overall_result))
   }
 
+  valid_idx <- which(vapply(
+    item_type_level,
+    function(x) {
+      !is.null(x) &&
+        !is.null(x$final_items) &&
+        nrow(x$final_items) > 0L &&
+        !is.null(x$embeddings$full) &&
+        !is.null(x$embeddings$sparse)
+    },
+    logical(1)
+  ))
 
+  valid_results <- item_type_level[valid_idx]
 
-  if(keep.org){
-    overall_obj <- list(final_items = items,
-                        initial_items = initial_items,
-                        embeddings = list(full_org = initial_full,
-                                          sparse_org = initial_sparse,
-                                          full = full,
-                                          sparse = sparse)
-                        )
+  if (length(valid_results) == 0L) {
+    if (keep.org) {
+      overall_obj <- list(
+        final_items = NULL,
+        initial_items = NULL,
+        embeddings = list(
+          full_org = NULL,
+          sparse_org = NULL,
+          full = NULL,
+          sparse = NULL
+        )
+      )
+    } else {
+      overall_obj <- list(
+        final_items = NULL,
+        embeddings = list(
+          full = NULL,
+          sparse = NULL
+        )
+      )
+    }
 
-  } else {
+    return(list(item_type_level = item_type_level,
+                overall = overall_obj))
+  }
 
-    overall_obj <- list(final_items = items,
-                        embeddings = list(full = full,
-                                          sparse = sparse)
+  full_list <- lapply(valid_results, function(x) x$embeddings$full)
+  sparse_list <- lapply(valid_results, function(x) x$embeddings$sparse)
+  items_list <- lapply(valid_results, function(x) x$final_items)
+
+  full <- do.call(cbind, full_list)
+  sparse <- do.call(cbind, sparse_list)
+  items <- do.call(rbind, items_list)
+
+  if (keep.org) {
+    keep_org_idx <- which(vapply(
+      valid_results,
+      function(x) {
+        !is.null(x$initial_items) &&
+          !is.null(x$embeddings$full_org) &&
+          !is.null(x$embeddings$sparse_org)
+      },
+      logical(1)
+    ))
+
+    if (length(keep_org_idx) > 0L) {
+      keep_org_results <- valid_results[keep_org_idx]
+      initial_full <- do.call(cbind, lapply(keep_org_results, function(x) x$embeddings$full_org))
+      initial_sparse <- do.call(cbind, lapply(keep_org_results, function(x) x$embeddings$sparse_org))
+      initial_items <- do.call(rbind, lapply(keep_org_results, function(x) x$initial_items))
+    } else {
+      initial_full <- NULL
+      initial_sparse <- NULL
+      initial_items <- NULL
+    }
+
+    overall_obj <- list(
+      final_items = items,
+      initial_items = initial_items,
+      embeddings = list(
+        full_org = initial_full,
+        sparse_org = initial_sparse,
+        full = full,
+        sparse = sparse
+      )
     )
-
+  } else {
+    overall_obj <- list(
+      final_items = items,
+      embeddings = list(
+        full = full,
+        sparse = sparse
+      )
+    )
   }
 
   return(list(item_type_level = item_type_level,
-               overall = overall_obj))
+              overall = overall_obj))
 }
 
 

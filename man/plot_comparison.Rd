@@ -4,7 +4,7 @@
 \alias{plot_comparison}
 \title{Plot Comparisons}
 \usage{
-plot_comparison(p1, p2, caption1, caption2, nmi2, nmi1, title)
+plot_comparison(p1, p2, caption1, caption2, nmi1, nmi2, title)
 }
 \arguments{
 \item{p1}{An object representing the first network analysis result (e.g., the initial EGA object before reduction).}
@@ -15,9 +15,9 @@ plot_comparison(p1, p2, caption1, caption2, nmi2, nmi1, title)
 
 \item{caption2}{A character string for the second network (e.g., "After AI-GENIE Network").}
 
-\item{nmi2}{A numeric value representing the NMI of the second network.}
-
 \item{nmi1}{A numeric value representing the Normalized Mutual Information (NMI) of the first network.}
+
+\item{nmi2}{A numeric value representing the NMI of the second network.}
 
 \item{title}{A character string specifying the title of the plot.}
 }

@@ -65,7 +65,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   # Check minimum items for meaningful analysis
 
   if (nrow(items) < 6) {
-    warning("[", type_name, "] Too few items (", nrow(items), 
+    warning("[", type_name, "] Too few items (", nrow(items),
             ") for meaningful network analysis. Minimum recommended is 6. Returning partial result.")
     result$final_items <- items
     result$final_N <- nrow(items)
@@ -105,7 +105,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
 
   # Check if enough items remain after UVA
   if (ncol(reduced_matrix) < 4) {
-    warning("[", type_name, "] Too few items (", ncol(reduced_matrix), 
+    warning("[", type_name, "] Too few items (", ncol(reduced_matrix),
             ") remaining after UVA for further analysis. Returning partial result.")
     result$final_items <- reduced_items
     result$final_N <- nrow(reduced_items)
@@ -146,7 +146,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   selected_embedding <- select_res$best_embedding_matrix
   result$embeddings$selected <- select_res$embedding_type
   result$EGA.model_selected <- select_res$model
-  initial_nmi <- select_res$nmi
+  post_uva_initial_nmi <- select_res$nmi
 
   # 4. BootEGA filtering
   boot_res <- iterative_stability_check(
@@ -167,8 +167,8 @@ run_pipeline_for_item_type <- function(embedding_matrix,
     return(result)
   }
 
-  result$bootEGA$initial_boot <- boot_res$boot1
-  result$bootEGA$final_boot <- boot_res$boot2
+  result$bootEGA$post_uva_initial_boot <- boot_res$boot1
+  result$bootEGA$post_uva_final_boot <- boot_res$boot2
   result$bootEGA$n_removed <- nrow(boot_res$items_removed)
   result$bootEGA$items_removed <- boot_res$items_removed
 
@@ -214,8 +214,20 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   true_communities <- as.factor(as.integer(factor(items$attribute)))
   names(true_communities) <- items$ID
 
+  # Use the SAME representation that was selected as optimal (sparse vs full),
+  # applied to the FULL pre-UVA embedding matrix. The original code passed raw
+  # `embedding_matrix` unconditionally, silently mismatching the selected
+  # representation whenever embeddings$selected == "sparse".
+  if(result$embeddings$selected == "full"){
+    data <- embedding_matrix
+  } else {
+    data <- sparsify_embeddings(embedding_matrix)
+  }
+
+  # Initial EGA on the full pool, computed directly from the embeddings
+  # (NOT taken from bootEGA's median typical structure).
   initial_res <- final_community_detection(
-    embedding_matrix = embedding_matrix,
+    embedding_matrix = data,
     true_communities = true_communities,
     model = select_res$model,
     algorithm = select_res$algorithm,
@@ -234,17 +246,11 @@ run_pipeline_for_item_type <- function(embedding_matrix,
                          EGA_com = initial_res$communities,
                          stringsAsFactors = FALSE)
 
-    result$initial_items <- merge(items, com_df, by = "ID")
+    result$initial_items <- merge(items, com_df, by = "ID", all.x = TRUE)
   }
 
   result$initial_EGA <- initial_res$ega
   result$initial_NMI <- initial_res$final_nmi
-
-
-  if(result$embeddings$selected == "full"){
-    data <- embedding_matrix}
-  else {
-    data <- sparsify_embeddings(embedding_matrix)}
 
   try_stab <- calc_final_stability(result,
                                    data,
@@ -282,26 +288,25 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   })
 
 
-
-
-
-  tryCatch({stability_plot <- plot_comparison(
-    p1 = result$bootEGA$initial_boot_with_redundancies,
-    p2 = result$bootEGA$final_boot,
-    caption1 = "Stability Plot for Items Pre-Reduction",
-    caption2 = "Stability Plot for Items Post-Reduction",
+  tryCatch({stability_plot <- plot_stability_comparison(
+    boot1 = result$bootEGA$initial_boot_with_redundancies,
+    boot2 = result$bootEGA$post_uva_final_boot,
+    caption1 = "Original Sample | EGA + TEFI",
+    caption2 = "Original Sample | EGA + TEFI",
     nmi1 = result$initial_NMI,
     nmi2 = result$final_NMI,
     title = paste("Bootstrapped Item Stability for", type_name, "Items Before vs After AIGENIE Reduction")
   )
-  result$stability_plot <- stability_plot },
+  result$stability_plot <- stability_plot
+  result$network_plot <- network_plot },
   error = function(e) {
-    warning(paste("Failed to create stability plots for", type_name, "items."))
+    warning(paste("Failed to create stability plots for", type_name,
+                  "items. Reason:", conditionMessage(e)))
   })
 
 
   if(plot && !is.null(result$network_plot)){
-    plot(result$network_plot)
+    print(result$network_plot)
   }
 
 
@@ -404,193 +409,66 @@ run_pipeline_for_all <- function(item_level,
                                  algorithm = "walktrap",
                                  uni.method = "louvain",
                                  corr = "auto",
+                                 ncores = NULL,
+                                 boot.iter = 100,
                                  keep.org = FALSE,
                                  silently,
                                  plot) {
 
+  # Collapse all item types into a single "All" type so the same pipeline
+  # used per-type can be applied to the entire item pool. This guarantees
+  # that run_pipeline_for_all and run_pipeline_for_item_type execute the
+  # exact same steps (UVA -> select_optimal_embedding -> bootEGA filter ->
+  # final EGA -> initial EGA -> calc_final_stability -> network/stability plots).
+  items_all <- run_all_together(items)
 
-  if(keep.org){
-    overall_result <- list(
-      final_NMI = NULL,
-      initial_NMI = NULL,
-      embeddings = list(),
-      EGA.model_selected = NULL,
-      final_items = NULL,
-      initial_items = items,
-      final_EGA = NULL,
-      initial_EGA = NULL,
-      start_N = nrow(items),
-      final_N = NULL,
-      network_plot = NULL
-    )} else {
-      overall_result <- list(
-        final_NMI = NULL,
-        initial_NMI = NULL,
-        embeddings = list(),
-        EGA.model_selected = NULL,
-        final_items = NULL,
-        final_EGA = NULL,
-        initial_EGA = NULL,
-        start_N = nrow(items),
-        final_N = NULL,
-        network_plot = NULL
+  # Make sure embeddings columns are aligned to items$ID
+  if (!is.null(colnames(embeddings))) {
+    embeddings_all <- embeddings[, items_all$ID, drop = FALSE]
+  } else {
+    embeddings_all <- embeddings
+    colnames(embeddings_all) <- items_all$ID
+  }
+
+  overall_result <- run_pipeline_for_item_type(
+    embedding_matrix = embeddings_all,
+    items            = items_all,
+    type_name        = "All",
+    model            = model,
+    algorithm        = algorithm,
+    uni.method       = uni.method,
+    corr             = corr,
+    ncores           = ncores,
+    boot.iter        = boot.iter,
+    keep.org         = keep.org,
+    silently         = silently,
+    plot             = plot
+  )
+
+  # Restore the original (non-collapsed) attribute / type columns on the
+  # surviving items so downstream code that joins on real attributes works.
+  if (!is.null(overall_result$final_items) &&
+      "ID" %in% names(overall_result$final_items)) {
+    keep_ids <- overall_result$final_items$ID
+    restored <- items[items$ID %in% keep_ids, , drop = FALSE]
+    if ("EGA_com" %in% names(overall_result$final_items)) {
+      restored <- merge(
+        restored,
+        overall_result$final_items[, c("ID", "EGA_com"), drop = FALSE],
+        by = "ID", all.x = TRUE
       )
     }
+    overall_result$final_items <- restored
+  }
 
-  success <- TRUE
-
-  # Build overall data frame and embedding matrix
   if (keep.org) {
-    overall_result$embeddings$full_org <- embeddings
-    overall_result$embeddings$sparse_org <- sparsify_embeddings(embeddings)
+    overall_result$initial_items <- items
   }
 
-  df_list <- lapply(item_level, function(x) x$final_items)
-  final_items <- do.call(rbind, df_list)
-
-  overall_result$final_items <- final_items
-
-  df_list <- lapply(item_level, function(x) x$embeddings$full)
-  final_embeddings <- do.call(cbind, df_list)
-
-  overall_result$embeddings$full <- final_embeddings
-  overall_result$embeddings$sparse <- sparsify_embeddings(final_embeddings)
-
-  # Find the final true communities label
-  communities <- paste(final_items$type, final_items$attribute, sep = "_")
-  communities <- as.numeric(as.factor(communities))
-  communities <- as.list(communities)
-  names(communities) <- final_items$ID
-
-
-  if(!silently){
-    cat("\n\n")
-    cat(paste("Starting analysis on all items.\n"))
-    cat("-------------------\n")
-  }
-
-  # 1. Get communities... already done
-  true_communities <- communities
-
-  # 2. Optimal embedding/model selection
-  select_res <- select_optimal_embedding(
-    embedding_matrix = final_embeddings,
-    true_communities = true_communities,
-    model = model,
-    algorithm = algorithm,
-    uni.method = uni.method,
-    corr = corr
-  )
-
-  if (!isTRUE(select_res$success)) {
-    warning("Building the final overall EGA network has failed -- returning partial result.")
-    success <- FALSE
-    return(list(overall_result = overall_result,
-                success = success))
-  }
-
-  if(!silently){
-    if(is.null(model)){
-      cat("Optimal EGA model and embedding type found.\n")
-    } else {
-      cat("Optimal embedding type found.\n")
-    }
-
-  }
-
-
-  overall_result$embeddings$selected <- select_res$embedding_type
-  overall_result$EGA.model_selected <- select_res$model
-  overall_result$final_NMI <- select_res$nmi
-  overall_result$final_EGA <- select_res$ega
-
-
-  # 5. Find the initial NMI given optimal settings EGA + NMI
-  if(select_res$embedding_type == "sparse"){
-    selected_embedding <- sparsify_embeddings(embeddings)
-  } else {
-    selected_embedding <- embeddings
-  }
-
-
-  # Find the final true communities label
-  initial_communities <- paste(items$type, items$attribute, sep = "_")
-  initial_communities <- as.numeric(as.factor(initial_communities))
-  initial_communities <- as.list(initial_communities)
-  names(initial_communities) <- items$ID
-
-
-  # Run EGA on all items in the item pool
-
-  if(!silently){
-  cat("Building initial EGA network based on optimal settings...")
-  }
-
-
-  initial_res <- final_community_detection(
-    embedding_matrix = selected_embedding,
-    true_communities = initial_communities,
-    model = select_res$model,
-    algorithm = select_res$algorithm,
-    uni.method = select_res$uni.method,
-    corr = corr
-  )
-
-  if (!isTRUE(initial_res$success)) {
-    warning("EGA failed on all items in the initial item pool -- returning partial result.")
-    success <- FALSE
-    return(list(overall_result = overall_result,
-                success = success))
-  }
-
-  # Add the initial community detection stats
-  overall_result$initial_NMI <- initial_res$final_nmi
-  overall_result$initial_EGA <- initial_res$ega
-
-  # Add community labels
-  final_items$EGA_com <- NULL # clear the communities found in previous steps
-  com_df <- data.frame(ID = names(select_res$found.communities),
-                       EGA_com = select_res$found.communities,
-                       stringsAsFactors = FALSE)
-
-  overall_result$final_items <- merge(final_items, com_df, by = "ID")
-
-  # add the communities to the initial items (if retained)
-  if(keep.org){
-    com_df <- data.frame(ID = names(initial_res$communities),
-                         EGA_com = initial_res$communities,
-                         stringsAsFactors = FALSE)
-
-    overall_result$initial_items <- merge(items, com_df, by = "ID")
-  }
-
-  # add the final number of items
-  overall_result$final_N <- nrow(overall_result$final_items)
-
-  if(!silently){
-    cat("Done.")
-  }
-
-
-  tryCatch({network_plot <- plot_comparison(
-    p1 = overall_result$initial_EGA,
-    p2 = overall_result$final_EGA,
-    caption1 = "Network Plot for Items Pre-Reduction",
-    caption2 = "Network Plot for Items Post-Reduction",
-    nmi1 = overall_result$initial_NMI,
-    nmi2 = overall_result$final_NMI,
-    title = "Network Plots for All Items Before vs After AIGENIE Reduction"
-  )
-  overall_result$network_plot <- network_plot },
-  error = function(e) {
-    warning(paste("Failed to create network plots for the items overall."))
-  })
-
-  if(plot && !is.null(overall_result$network_plot)){
-    plot(network_plot)
-  }
-
+  success <- !is.null(overall_result) &&
+             !is.null(overall_result$final_EGA) &&
+             !is.null(overall_result$initial_EGA)
 
   return(list(overall_result = overall_result,
-              success = success))
+              success        = success))
 }

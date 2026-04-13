@@ -944,7 +944,7 @@ validate_ega_params <- function(EGA.algorithm, EGA.uni.method, EGA_model) {
   #  - EGA_model : continue existing procedure (so leave both NULL here)
   if (is.null(EGA.algorithm)) {
     algo_pair$type <- "walktrap"
-    algo_pair$overall <- "louvain"
+    algo_pair$overall <- "walktrap"
   }
   if (is.null(EGA.uni.method)) {
     uni_pair$type <- "louvain"

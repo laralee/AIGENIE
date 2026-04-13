@@ -770,7 +770,46 @@ plot_comparison <- function(p1, p2, caption1, caption2, nmi2, nmi1, title){
 }
 
 
+#' Plot Stability Comparison (network + item stability dotplot, side by side)
+#'
+#' Builds a 4-panel comparison: pre-reduction network + pre-reduction item stability,
+#' next to post-reduction network + post-reduction item stability. Mirrors the layout
+#' of the AIGENIE simulation/reference figure.
+#'
+#' @param boot1,boot2 bootEGA objects (pre and post reduction).
+#' @param caption1,caption2 Captions under each network panel.
+#' @param nmi1,nmi2 NMI values pre/post.
+#' @param title Overall title.
+#'
+#' @return A patchwork object combining the four panels.
+plot_stability_comparison <- function(boot1, boot2,
+                                      caption1, caption2,
+                                      nmi1, nmi2, title){
 
+  net1 <- plot(boot1$EGA) +
+    ggplot2::labs(caption = paste0(caption1, " (NMI: ", round(nmi1, 4) * 100, ")"))
+  net2 <- plot(boot2$EGA) +
+    ggplot2::labs(caption = paste0(caption2, " (NMI: ", round(nmi2, 4) * 100, ")"))
+
+  is1 <- boot1$stability$item.stability$plot
+  is2 <- boot2$stability$item.stability$plot
+
+  combined <- patchwork::wrap_plots(
+    net1, is1, net2, is2,
+    ncol = 4,
+    widths = c(1.3, 1, 1.3, 1)
+  ) +
+    patchwork::plot_annotation(
+      title = title,
+      subtitle = paste0("Change in NMI: ", round((nmi2 - nmi1), 4) * 100),
+      theme = ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, size = 16),
+        plot.subtitle = ggplot2::element_text(hjust = 0.5, size = 12)
+      )
+    )
+
+  return(combined)
+}
 #' Run Final Community Detection with EGA
 #'
 #' @param embedding_matrix A numeric matrix with items as columns.
@@ -870,75 +909,16 @@ run_all_together <- function(items){
 build_return <- function(item_type_level, overall_result,
                          run.overall, keep.org) {
 
+  # When run.overall = FALSE, GENIE should NOT return an overall result.
+  # (This branch is only reached when all.together = FALSE -- the
+  # all.together = TRUE path returns earlier in main_v2.R and never
+  # calls build_return.)
   if(!run.overall){
-    # Initialize containers
-    full_list <- list()
-    initial_full_list <- list()
-    sparse_list <- list()
-    initial_sparse_list <- list()
-
-    items_list <- list()
-    initial_items_list <- list()
-
-
-
-    # Loop through each sublist
-    for (i in seq_along(item_type_level)) {
-
-      embeddings <- item_type_level[[i]]$embeddings
-      items <- item_type_level[[i]]$final_items
-
-      full_list[[i]] <- embeddings$full
-      sparse_list[[i]] <- embeddings$sparse
-      items_list[[i]] <- items
-
-      if(keep.org){
-        initial_items <- item_type_level[[i]]$initial_items
-
-        initial_full_list[[i]] <- embeddings$full_org
-        initial_sparse_list[[i]] <- embeddings$sparse_org
-        initial_items_list[[i]] <- initial_items
-      }
-
-    }
-
-    # Combine all matrices column-wise
-    full <- do.call(cbind, full_list)
-    sparse <- do.call(cbind, sparse_list)
-    items <- do.call(rbind, items_list)
-
-    if(keep.org){
-      initial_full <- do.call(cbind, initial_full_list)
-      initial_sparse <- do.call(cbind, initial_sparse_list)
-      initial_items <- do.call(rbind, initial_items_list)
-    }
-  } else {
-    return(list(item_type_level = item_type_level,
-                overall = overall_result))
-  }
-
-
-
-  if(keep.org){
-    overall_obj <- list(final_items = items,
-                        initial_items = initial_items,
-                        embeddings = list(full_org = initial_full,
-                                          sparse_org = initial_sparse,
-                                          full = full,
-                                          sparse = sparse)
-                        )
-
-  } else {
-
-    overall_obj <- list(final_items = items,
-                        embeddings = list(full = full,
-                                          sparse = sparse)
-    )
-
+    return(list(item_type_level = item_type_level))
   }
 
   return(list(item_type_level = item_type_level,
-               overall = overall_obj))
+              overall = overall_result))
 }
 
 

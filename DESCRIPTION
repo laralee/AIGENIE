@@ -27,7 +27,7 @@ License: AGPL (>= 3)
 Encoding: UTF-8
 Depends:
     R (>= 3.6.0),
-    EGAnet
+    EGAnet (>= 2.4.1)
 Imports:
     reticulate,
     ggplot2,

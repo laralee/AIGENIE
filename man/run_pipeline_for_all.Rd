@@ -12,6 +12,8 @@ run_pipeline_for_all(
   algorithm = "walktrap",
   uni.method = "louvain",
   corr = "auto",
+  ncores = NULL,
+  boot.iter = 100,
   keep.org = FALSE,
   silently,
   plot

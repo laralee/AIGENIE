@@ -665,7 +665,7 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
       item_level[["All"]][["initial_items"]] <- items
     }
 
-    return(list(item_level[["All"]]))
+    return(item_level[["All"]])
 
   }
 

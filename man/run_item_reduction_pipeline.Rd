@@ -13,6 +13,7 @@ run_item_reduction_pipeline(
   corr = "auto",
   ncores = NULL,
   boot.iter = 100,
+  uva.cut.off = 0.2,
   keep.org,
   silently,
   plot
@@ -34,6 +35,8 @@ run_item_reduction_pipeline(
 \item{ncores}{Numeric. Number of cores for parallel processing.}
 
 \item{boot.iter}{Numeric. Number of bootstrap iterations.}
+
+\item{uva.cut.off}{Numeric in \verb{[0, 1)}. wTO threshold for \code{EGAnet::UVA}. Default \code{0.20}.}
 
 \item{keep.org}{Logical. Whether to include original items and embeddings}
 

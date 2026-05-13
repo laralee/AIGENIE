@@ -1159,6 +1159,26 @@ top.p_validate <- function(top.p) {
 
 }
 
+
+#' Validate `uva.cut.off`
+#'
+#' Ensures `uva.cut.off` is a single numeric value in `[0, 1)`.
+#'
+#' @param uva.cut.off A numeric value.
+#'
+uva.cut.off_validate <- function(uva.cut.off) {
+
+  if (!is.numeric(uva.cut.off) || length(uva.cut.off) != 1 || is.na(uva.cut.off)) {
+    stop("AI-GENIE expects uva.cut.off to be a single numeric value.", call. = FALSE)
+  }
+
+  if (uva.cut.off < 0 || uva.cut.off >= 1) {
+    stop("AI-GENIE expects uva.cut.off to be in the half-open interval [0, 1).",
+         call. = FALSE)
+  }
+
+}
+
 # Validate additional prompt components ----
 #' Validate and Clean `response.options`
 #'

@@ -82,9 +82,13 @@ sparsify_embeddings <- function(embedding_matrix,
 #' @param items Data frame with `ID` and `statement` columns.
 #' @param corr Character. Correlation method to use. Default "auto" uses EGAnet's
 #'   automatic correlation detection. Other options: "pearson", "spearman", "cosine".
+#' @param uva.cut.off Numeric in `[0, 1)`. The weighted topological overlap
+#'   threshold passed to `EGAnet::UVA`. Items with pairwise wTO at or above
+#'   this value are flagged as redundant. Default `0.20`.
 #'
 #' @return A list with the reduced matrix, sweep metadata, and redundancy log.
-reduce_redundancy_uva <- function(embedding_matrix, items, corr = "auto") {
+reduce_redundancy_uva <- function(embedding_matrix, items, corr = "auto",
+                                  uva.cut.off = 0.20) {
 
   original_embedding <- embedding_matrix
   current_matrix <- embedding_matrix
@@ -195,7 +199,7 @@ reduce_redundancy_uva <- function(embedding_matrix, items, corr = "auto") {
       EGAnet::UVA(
         data = current_matrix,
         corr = corr,
-        cut.off = 0.25,
+        cut.off = uva.cut.off,
         reduce = TRUE,
         reduce.method = "remove",
         auto = TRUE,
@@ -283,28 +287,30 @@ reduce_redundancy_uva <- function(embedding_matrix, items, corr = "auto") {
 
 #' Select Optimal Embedding and EGA Model Based on NMI
 #'
-#' @param embedding_matrix A numeric matrix (columns = items).
+#' @param embedding_matrix A numeric matrix (columns = items). The full (dense)
+#'   representation.
+#' @param sparse_matrix A numeric matrix (columns = items) giving the sparse
+#'   representation, aligned to `embedding_matrix` (same items and column order).
+#'   This is computed once on the pre-UVA pool and then subset to the post-UVA
+#'   items in the AI-GENIE pipeline; passing it in (rather than recomputing
+#'   inside) preserves the pre-UVA quantile thresholds.
 #' @param true_communities A named list of known communities.
 #' @param model Character. One of "glasso", "TMFG", or NULL (to test both).
 #' @param algorithm Community detection algorithm (e.g., "walktrap").
 #' @param uni.method Unidimensionality method (e.g., "louvain").
 #' @param corr Character. Correlation method. Default "auto" uses EGAnet's automatic detection.
-#' @param sparsify_function Function to sparsify the embedding.
 #'
 #' @return A list with best embedding, model, communities, NMI, and comparison log.
 select_optimal_embedding <- function(embedding_matrix,
+                                     sparse_matrix,
                                      true_communities,
                                      model = NULL,
                                      algorithm = "walktrap",
                                      uni.method = "louvain",
-                                     corr = "auto",
-                                     sparsify_function = sparsify_embeddings) {
+                                     corr = "auto") {
 
   # Prepare embeddings
-  full <- embedding_matrix
-  sparse <- sparsify_function(embedding_matrix)
-
-  embeddings <- list(full = full, sparse = sparse)
+  embeddings <- list(full = embedding_matrix, sparse = sparse_matrix)
 
   # Determine which models to test
   models <- if (is.null(model)) c("glasso", "TMFG") else model

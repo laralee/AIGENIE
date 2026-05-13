@@ -15,6 +15,7 @@ local_GENIE(
   EGA.model = NULL,
   EGA.algorithm = NULL,
   EGA.uni.method = NULL,
+  uva.cut.off = 0.2,
   embeddings.only = FALSE,
   run.overall = FALSE,
   all.together = FALSE,
@@ -72,6 +73,9 @@ All columns must be character type except ID (numeric or character allowed).
 \item{EGA.algorithm}{Community detection algorithm ("walktrap", "leiden", "louvain")}
 
 \item{EGA.uni.method}{Unidimensionality assessment method ("louvain", "expand", "LE")}
+
+\item{uva.cut.off}{Numeric in \verb{[0, 1)}. wTO threshold passed to \code{EGAnet::UVA} for the
+redundancy-reduction step (default: 0.20). Lower values remove more items.}
 
 \item{embeddings.only}{If \code{TRUE}, return embeddings and stop (skip network analysis)}
 

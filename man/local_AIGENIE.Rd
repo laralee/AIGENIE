@@ -23,6 +23,7 @@ local_AIGENIE(
   EGA.model = NULL,
   EGA.algorithm = NULL,
   EGA.uni.method = NULL,
+  uva.cut.off = 0.2,
   n.ctx = 4096,
   n.gpu.layers = -1,
   max.tokens = 1024,
@@ -76,6 +77,9 @@ local_AIGENIE(
 \item{EGA.algorithm}{Community detection algorithm (default: "walktrap" when there is one trait and "louvain" when there are multiple)}
 
 \item{EGA.uni.method}{Unidimensionality method (default: "louvain")}
+
+\item{uva.cut.off}{Numeric in \verb{[0, 1)}. wTO threshold passed to \code{EGAnet::UVA} for the
+redundancy-reduction step (default: 0.20). Lower values remove more items.}
 
 \item{n.ctx}{Context window size (default: 4096)}
 

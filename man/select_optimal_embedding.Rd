@@ -6,16 +6,23 @@
 \usage{
 select_optimal_embedding(
   embedding_matrix,
+  sparse_matrix,
   true_communities,
   model = NULL,
   algorithm = "walktrap",
   uni.method = "louvain",
-  corr = "auto",
-  sparsify_function = sparsify_embeddings
+  corr = "auto"
 )
 }
 \arguments{
-\item{embedding_matrix}{A numeric matrix (columns = items).}
+\item{embedding_matrix}{A numeric matrix (columns = items). The full (dense)
+representation.}
+
+\item{sparse_matrix}{A numeric matrix (columns = items) giving the sparse
+representation, aligned to \code{embedding_matrix} (same items and column order).
+This is computed once on the pre-UVA pool and then subset to the post-UVA
+items in the AI-GENIE pipeline; passing it in (rather than recomputing
+inside) preserves the pre-UVA quantile thresholds.}
 
 \item{true_communities}{A named list of known communities.}
 
@@ -26,8 +33,6 @@ select_optimal_embedding(
 \item{uni.method}{Unidimensionality method (e.g., "louvain").}
 
 \item{corr}{Character. Correlation method. Default "auto" uses EGAnet's automatic detection.}
-
-\item{sparsify_function}{Function to sparsify the embedding.}
 }
 \value{
 A list with best embedding, model, communities, NMI, and comparison log.

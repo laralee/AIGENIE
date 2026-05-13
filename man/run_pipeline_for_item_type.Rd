@@ -14,6 +14,7 @@ run_pipeline_for_item_type(
   corr = "auto",
   ncores = NULL,
   boot.iter = 100,
+  uva.cut.off = 0.2,
   keep.org = FALSE,
   silently,
   plot
@@ -37,6 +38,8 @@ run_pipeline_for_item_type(
 \item{ncores}{Numeric. Number of cores for parallel processing. Default NULL uses EGAnet default.}
 
 \item{boot.iter}{Numeric. Number of bootstrap iterations. Default 100.}
+
+\item{uva.cut.off}{Numeric in \verb{[0, 1)}. wTO threshold for \code{EGAnet::UVA}. Default \code{0.20}.}
 
 \item{keep.org}{Logical. Whether to include original items and embeddings}
 

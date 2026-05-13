@@ -9,6 +9,7 @@
 #' @param corr Character. Correlation method. Default "auto" uses EGAnet's automatic detection.
 #' @param ncores Numeric. Number of cores for parallel processing. Default NULL uses EGAnet default.
 #' @param boot.iter Numeric. Number of bootstrap iterations. Default 100.
+#' @param uva.cut.off Numeric in `[0, 1)`. wTO threshold for `EGAnet::UVA`. Default `0.20`.
 #' @param keep.org Logical. Whether to include original items and embeddings
 #' @param silently Logical. Whether to print progress statements
 #' @param plot Logicial. Whether to plot the network plots at the end
@@ -23,6 +24,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
                                        corr = "auto",
                                        ncores = NULL,
                                        boot.iter = 100,
+                                       uva.cut.off = 0.20,
                                        keep.org = FALSE,
                                        silently,
                                        plot) {
@@ -82,9 +84,16 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   true_communities <- as.factor(as.integer(factor(items$attribute)))
   names(true_communities) <- items$ID
 
-  # 2. Redundancy reduction (UVA)
+  # 2. Sparsify the full embedding matrix ONCE up front. This sparse matrix
+  # is used (a) as the input to UVA and (b) as the sparse representation
+  # passed to select_optimal_embedding -- thresholds are derived from the
+  # pre-UVA distribution and the matrix is subset thereafter, matching the
+  # AI-GENIE simulation's "sparsify once, subset thereafter" approach.
+  sparse_embedding <- sparsify_embeddings(embedding_matrix)
 
-  uva_res <- reduce_redundancy_uva(embedding_matrix, items, corr = corr)
+  # 3. Redundancy reduction (UVA) on the SPARSE matrix
+  uva_res <- reduce_redundancy_uva(sparse_embedding, items, corr = corr,
+                                   uva.cut.off = uva.cut.off)
 
   if (!uva_res$success) {
     warning("[", type_name, "] UVA failed -- returning partial result.")
@@ -100,12 +109,15 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   result$UVA$n_sweeps <- uva_res$iterations
   result$UVA$redundant_pairs <- uva_res$redundant_pairs
 
-  reduced_matrix <- uva_res$embedding_matrix
-  reduced_items <- items[items$ID %in% colnames(reduced_matrix), , drop = FALSE]
+  # Apply UVA's surviving IDs to BOTH the full and sparse representations
+  reduced_sparse <- uva_res$embedding_matrix
+  kept_ids       <- colnames(reduced_sparse)
+  reduced_full   <- embedding_matrix[, kept_ids, drop = FALSE]
+  reduced_items  <- items[items$ID %in% kept_ids, , drop = FALSE]
 
   # Check if enough items remain after UVA
-  if (ncol(reduced_matrix) < 4) {
-    warning("[", type_name, "] Too few items (", ncol(reduced_matrix),
+  if (ncol(reduced_full) < 4) {
+    warning("[", type_name, "] Too few items (", ncol(reduced_full),
             ") remaining after UVA for further analysis. Returning partial result.")
     result$final_items <- reduced_items
     result$final_N <- nrow(reduced_items)
@@ -113,19 +125,22 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   }
 
   if (keep.org) {
-    result$embeddings$full_org <- embedding_matrix
-    result$embeddings$sparse_org <- sparsify_embeddings(embedding_matrix)
+    result$embeddings$full_org   <- embedding_matrix
+    result$embeddings$sparse_org <- sparse_embedding
   }
 
 
-  # 3. Optimal embedding/model selection
+  # 4. Optimal embedding/model selection -- pass BOTH pre-computed
+  # representations so the sparse matrix retains its pre-UVA quantile
+  # thresholds rather than being re-sparsified on the post-UVA distribution.
   select_res <- select_optimal_embedding(
-    embedding_matrix = reduced_matrix,
+    embedding_matrix = reduced_full,
+    sparse_matrix    = reduced_sparse,
     true_communities = true_communities,
-    model = model,
-    algorithm = algorithm,
-    uni.method = uni.method,
-    corr = corr
+    model            = model,
+    algorithm        = algorithm,
+    uni.method       = uni.method,
+    corr             = corr
   )
 
   if (!isTRUE(select_res$success)) {
@@ -148,7 +163,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   result$EGA.model_selected <- select_res$model
   post_uva_initial_nmi <- select_res$nmi
 
-  # 4. BootEGA filtering
+  # 5. BootEGA filtering
   boot_res <- iterative_stability_check(
     embedding_matrix = selected_embedding,
     items = items,
@@ -175,7 +190,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   stable_embedding <- boot_res$embedding
   stable_items <- items[items$ID %in% colnames(stable_embedding), , drop = FALSE]
 
-  # 5. Final EGA + NMI
+  # 6. Final EGA + NMI
   final_res <- final_community_detection(
     embedding_matrix = stable_embedding,
     true_communities = true_communities,
@@ -200,12 +215,13 @@ run_pipeline_for_item_type <- function(embedding_matrix,
 
   result$final_EGA <- final_res$ega
 
-  # Store full + sparse embeddings
-  full_embeds_final <- embedding_matrix[,colnames(embedding_matrix) %in% result$final_items$ID]
-  result$embeddings$full <- full_embeds_final
-  result$embeddings$sparse <- sparsify_embeddings(full_embeds_final)
+  # Store full + sparse embeddings -- sparse is the SUBSET of the pre-UVA
+  # sparse matrix (matching the "sparsify once, subset thereafter" approach).
+  final_ids <- intersect(colnames(embedding_matrix), result$final_items$ID)
+  result$embeddings$full   <- embedding_matrix[, final_ids, drop = FALSE]
+  result$embeddings$sparse <- sparse_embedding[, final_ids, drop = FALSE]
 
-  # 6. Build initial network
+  # 7. Build initial network
   if(!silently){
     cat("\nBuilding initial network based on optimal settings...")
   }
@@ -214,20 +230,13 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   true_communities <- as.factor(as.integer(factor(items$attribute)))
   names(true_communities) <- items$ID
 
-  # Use the SAME representation that was selected as optimal (sparse vs full),
-  # applied to the FULL pre-UVA embedding matrix. The original code passed raw
-  # `embedding_matrix` unconditionally, silently mismatching the selected
-  # representation whenever embeddings$selected == "sparse".
-  if(result$embeddings$selected == "full"){
-    data <- embedding_matrix
-  } else {
-    data <- sparsify_embeddings(embedding_matrix)
-  }
-
-  # Initial EGA on the full pool, computed directly from the embeddings
-  # (NOT taken from bootEGA's median typical structure).
+  # Initial EGA always on the FULL pre-UVA embedding matrix, regardless of
+  # which representation was selected as optimal. This isolates `initial_NMI`
+  # as the dense-representation baseline so `final_NMI - initial_NMI`
+  # captures the end-to-end gain of the AI-GENIE pipeline (sparsification +
+  # UVA + bootEGA), matching the framing used in the AI-GENIE simulation.
   initial_res <- final_community_detection(
-    embedding_matrix = data,
+    embedding_matrix = embedding_matrix,
     true_communities = true_communities,
     model = select_res$model,
     algorithm = select_res$algorithm,
@@ -252,8 +261,18 @@ run_pipeline_for_item_type <- function(embedding_matrix,
   result$initial_EGA <- initial_res$ega
   result$initial_NMI <- initial_res$final_nmi
 
+  # For the stability plot's "pre-reduction" bootEGA baseline, keep the
+  # SAME representation that was selected as optimal so the stability
+  # comparison is apples-to-apples with the post-UVA bootEGA. (This is
+  # independent of `initial_NMI`, which is anchored to the full matrix.)
+  if(result$embeddings$selected == "full"){
+    stability_data <- embedding_matrix
+  } else {
+    stability_data <- sparse_embedding
+  }
+
   try_stab <- calc_final_stability(result,
-                                   data,
+                                   stability_data,
                                    algorithm,
                                    uni.method,
                                    corr = corr,
@@ -324,6 +343,7 @@ run_pipeline_for_item_type <- function(embedding_matrix,
 #' @param corr Character. Correlation method. Default "auto" uses EGAnet's automatic detection.
 #' @param ncores Numeric. Number of cores for parallel processing.
 #' @param boot.iter Numeric. Number of bootstrap iterations.
+#' @param uva.cut.off Numeric in `[0, 1)`. wTO threshold for `EGAnet::UVA`. Default `0.20`.
 #' @param keep.org Logical. Whether to include original items and embeddings
 #' @param silently Logical. Whether to print progress statements
 #' @param plot Logical. Whether to plot the network plots at the end
@@ -337,6 +357,7 @@ run_item_reduction_pipeline <- function(embedding_matrix,
                                         corr = "auto",
                                         ncores = NULL,
                                         boot.iter = 100,
+                                        uva.cut.off = 0.20,
                                         keep.org,
                                         silently,
                                         plot) {
@@ -367,6 +388,7 @@ run_item_reduction_pipeline <- function(embedding_matrix,
         corr = corr,
         ncores = ncores,
         boot.iter = boot.iter,
+        uva.cut.off = uva.cut.off,
         keep.org = keep.org,
         silently = silently,
         plot = plot
@@ -397,6 +419,9 @@ run_item_reduction_pipeline <- function(embedding_matrix,
 #' @param algorithm EGA algorithm
 #' @param uni.method EGA uni.method
 #' @param corr Character. Correlation method. Default "auto" uses EGAnet's automatic detection.
+#' @param ncores Numeric. Number of cores for parallel processing.
+#' @param boot.iter Numeric. Number of bootstrap iterations.
+#' @param uva.cut.off Numeric in `[0, 1)`. wTO threshold for `EGAnet::UVA`. Default `0.20`.
 #' @param keep.org Logical. Whether to include original items and embeddings
 #' @param silently Logical. Whether to print progress statements
 #' @param plot logical. Whether to plot the network plot
@@ -411,6 +436,7 @@ run_pipeline_for_all <- function(item_level,
                                  corr = "auto",
                                  ncores = NULL,
                                  boot.iter = 100,
+                                 uva.cut.off = 0.20,
                                  keep.org = FALSE,
                                  silently,
                                  plot) {
@@ -440,6 +466,7 @@ run_pipeline_for_all <- function(item_level,
     corr             = corr,
     ncores           = ncores,
     boot.iter        = boot.iter,
+    uva.cut.off      = uva.cut.off,
     keep.org         = keep.org,
     silently         = silently,
     plot             = plot

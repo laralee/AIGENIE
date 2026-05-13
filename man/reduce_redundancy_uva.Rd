@@ -4,7 +4,12 @@
 \alias{reduce_redundancy_uva}
 \title{Reduce Redundancy via Iterative UVA (with Redundant Pair Logging)}
 \usage{
-reduce_redundancy_uva(embedding_matrix, items, corr = "auto")
+reduce_redundancy_uva(
+  embedding_matrix,
+  items,
+  corr = "auto",
+  uva.cut.off = 0.2
+)
 }
 \arguments{
 \item{embedding_matrix}{A numeric matrix of embeddings (columns = items).}
@@ -13,6 +18,10 @@ reduce_redundancy_uva(embedding_matrix, items, corr = "auto")
 
 \item{corr}{Character. Correlation method to use. Default "auto" uses EGAnet's
 automatic correlation detection. Other options: "pearson", "spearman", "cosine".}
+
+\item{uva.cut.off}{Numeric in \verb{[0, 1)}. The weighted topological overlap
+threshold passed to \code{EGAnet::UVA}. Items with pairwise wTO at or above
+this value are flagged as redundant. Default \code{0.20}.}
 }
 \value{
 A list with the reduced matrix, sweep metadata, and redundancy log.

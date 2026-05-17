@@ -69,22 +69,35 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
 
     iterations_without_new <- 0
     total_iterations <- 0
-    max_iterations <- 50
+    # ALIGN-SIM: the validated simulation persists for 40 stalls (not 10)
+    # and does not impose a hard max-iteration cap. Early stopping is the
+    # primary driver of over-templated, near-perfectly-separable item
+    # pools (pre-reduction NMI ~= 1.0 regardless of LLM). Persisting under
+    # adaptive anti-repetition pressure is what produces realistic
+    # within-attribute dispersion.
+    stall_limit <- 40L
 
     # Generate until we reach target
-    while (nrow(type_items_df) < target.N[[item_type]] && total_iterations < max_iterations) {
+    while (nrow(type_items_df) < target.N[[item_type]]) {
 
       total_iterations <- total_iterations + 1
 
-      # Build prompt with adaptive mode
+      # Build prompt with adaptive mode.
+      # ALIGN-SIM: feed back ONLY this type's accumulated items (scoped
+      # per item_type, as in the validated simulation), and append the
+      # strict-JSON instruction LAST so the format directive is the most
+      # recent thing the model reads. construct_item.examples_string()
+      # already filters to item_type internally.
       current_prompt <- main.prompts[[item_type]]
 
-      if (adaptive && nrow(all_items_df) > 0) {
-        examples_string <- construct_item.examples_string(all_items_df, item_type)
+      if (adaptive && nrow(type_items_df) > 0) {
+        examples_string <- construct_item.examples_string(type_items_df, item_type)
         if (!is.null(examples_string)) {
           current_prompt <- paste0(
             current_prompt,
-            "\n\nDo NOT repeat, rephrase, or reuse ANY items from this list:\n",
+            "\n\nDo NOT repeat, rephrase, or reuse the content of ANY items",
+            " from this list of items you've already generated for ",
+            item_type, ":\n",
             examples_string
           )
         }
@@ -147,11 +160,12 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
       }
 
       # Check for stalling
-      if (iterations_without_new >= 10) {
+      if (iterations_without_new >= stall_limit) {
         if (!silently) {
           warning("\nUnable to generate new items for ", item_type,
-                  " after 10 iterations. Generated ", nrow(type_items_df),
-                  " of ", target.N[[item_type]], " items.", immediate. = TRUE)
+                  " after ", stall_limit, " iterations. Generated ",
+                  nrow(type_items_df), " of ", target.N[[item_type]],
+                  " items.", immediate. = TRUE)
         }
         break
       }

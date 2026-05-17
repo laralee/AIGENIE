@@ -127,6 +127,15 @@ create_main.prompts <- function(item.attributes, item.type.definitions,
     }
 
     # Construct the main prompt for all prompts
+    # ALIGN-SIM: the validated simulation's prompt pushes hard for
+    # breadth/novelty/creativity across attributes and enumerates the
+    # EXACT allowed attribute values. Weak diversity language + a
+    # non-enumerated whitelist is what lets the model re-emit a tight
+    # template per attribute, producing near-perfectly separable pools
+    # (pre-reduction NMI ~= 1.0 regardless of LLM). The added clauses
+    # below mirror the old "expanded + few_shot" construction without
+    # removing any existing prompt component (domain/scale/audience/
+    # definition/examples/prompt.notes), so the public contract holds.
     main.prompts[[current_type]] <- paste0(
       "Generate a grand total of ", length(attributes) * 2, " novel, UNIQUE, reliable, and valid ",
       ifelse(!is.null(domain), paste0(domain, " "), ""),
@@ -136,9 +145,16 @@ create_main.prompts <- function(item.attributes, item.type.definitions,
       "Here are the attributes of the item type '", current_type, "': ", numbered,
       ". Generate EXACTLY TWO items PER attribute. Use the ",length(attributes)," attributes EXACTLY as provided; do NOT add your own or leave any out." ,
       "\nEACH item should be ROBUST, NOVEL, and UNIQUE. These items must be top-quality.\n",
+      "Ensure that each item is extremely high-quality, psychometrically robust, and concise.",
+      " Each item should be novel, so be creative; aim for BREADTH across these attributes,",
+      " deliberately varying wording, sentence structure, and the facet of the attribute",
+      " each item emphasizes. Avoid producing items that are minor rephrasings of one another.",
+      " Items should be polished and ready for immediate practical use.\n",
       "Return output STRICTLY as a JSON array of objects, each with keys `attribute` and `statement`, e.g.:\n",
       "[{\"attribute\":\"", item.attributes[[current_type]][1], "\",\"statement\":\"Your item here.\"}, ...]\n",
       "This JSON formatting is EXTREMELY important. ONLY output the items in this formatting; DO NOT include any other text in your response.",
+      " The \"attribute\" key should ONLY have these EXACT values: ",
+      paste(item.attributes[[current_type]], collapse = ", "), ".",
       ifelse(is.null(examples_str), "", paste0("\n\nTo better help you understand how EXACTLY to phrase/constuct your items,",
                " here are some EXAMPLE high-quality items that already exist on the scale that you MUST",
             " emulate in terms of QUALITY and item STRUCTURE (how the item is framed/setup/constructed).",

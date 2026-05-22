@@ -325,6 +325,12 @@ Golino, H., Shi, D., Christensen, A. P., Garrido, L. E., Nieto, M. D., Sadana, R
 
 ---
 
-# License
+## License and Commercial Use
 
-AGPL (>= 3.0)
+AIGENIE is released under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later).
+
+Commercial use is permitted under the terms of the AGPL. However, organizations that wish to integrate AIGENIE or derivative implementations into proprietary, closed-source, SaaS, enterprise, or production systems should carefully review their AGPL obligations, including source-code disclosure requirements for modified versions used over a network.
+
+For commercial licensing, proprietary integration, sponsored development, or scientific advisory arrangements, please contact the copyright holders:
+
+Hudson F. Golino, Lara Russell-Lasalandra, and Alexander P. Christensen.

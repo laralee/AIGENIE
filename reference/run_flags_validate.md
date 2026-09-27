@@ -1,4 +1,4 @@
-# Check that the `run.overall` and `all.together` flags are logically consistent with the number of item types.
+# Validate the `run.overall` and `all.together` Flags
 
 Check that the `run.overall` and `all.together` flags are logically
 consistent with the number of item types.

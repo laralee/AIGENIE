@@ -139,7 +139,8 @@ canonical model name using <code><a href="normalize_model_name.html">normalize_m
 
 
 <dt id="arg-embedding-model">embedding.model<a class="anchor" aria-label="anchor" href="#arg-embedding-model"></a></dt>
-<dd><p>A string or NULL. Must be one of the accepted OpenAI embedding models.</p></dd>
+<dd><p>A string. An OpenAI, Jina AI, or HuggingFace embedding model;
+validated via <code><a href="embedding.model_validate.html">embedding.model_validate()</a></code>.</p></dd>
 
 
 <dt id="arg-target-n">target.N<a class="anchor" aria-label="anchor" href="#arg-target-n"></a></dt>
@@ -184,7 +185,7 @@ Optional.</p></dd>
 
 
 <dt id="arg-ega-model">EGA.model<a class="anchor" aria-label="anchor" href="#arg-ega-model"></a></dt>
-<dd><p>A string or NULL. One of <code>"BGGM"</code>, <code>"glasso"</code>, or <code>"TMFG"</code>.</p></dd>
+<dd><p>A string or NULL. One of <code>"glasso"</code> or <code>"TMFG"</code>.</p></dd>
 
 
 <dt id="arg-ega-algorithm">EGA.algorithm<a class="anchor" aria-label="anchor" href="#arg-ega-algorithm"></a></dt>
@@ -264,8 +265,19 @@ together rather than separately.</p></dd>
 <dt>custom</dt>
 <dd><p>A flag signaling whether we are in custom mode or not</p></dd>
 
+<dt>provider</dt>
+<dd><p>Detected embedding provider (<code>"openai"</code>, <code>"jina"</code>, or <code>"huggingface"</code>)</p></dd>
 
-</dl></div>
+<dt>all.together</dt>
+<dd><p>Validated <code>all.together</code> flag</p></dd>
+
+<dt>run.overall</dt>
+<dd><p>Validated <code>run.overall</code> flag</p></dd>
+
+
+</dl><p><code>EGA.model</code>, <code>EGA.uni.method</code>, and <code>EGA.algorithm</code> are each returned as a list with
+<code>type</code> and <code>overall</code> elements (see <code><a href="validate_ega_params.html">validate_ega_params()</a></code>).</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>If any input is invalid or misaligned with the package’s expected structure,

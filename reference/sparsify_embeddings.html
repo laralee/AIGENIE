@@ -90,16 +90,16 @@ results in all zeros.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Sparsified embedding matrix with same dimensions as input</p>
+    <p>Sparsified embedding matrix with same dimensions as input. The
+attribute <code>sparsification_applied</code> records whether sparsification was
+applied and, if so, <code>quantiles_used</code> records the quantiles used.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Sparsification process:</p><ol><li><p>Zero out values between lower and upper quantiles</p></li>
 <li><p>If result is all zeros, try fallback quantiles</p></li>
 <li><p>If still all zeros, return original matrix</p></li>
-</ol><p><code>silently</code> is always <code>TRUE</code>. It is only set to <code>FALSE</code> for developement
-and diagnostic purposes.</p>
-    </div>
+</ol></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

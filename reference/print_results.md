@@ -1,10 +1,9 @@
 # Print Results
 
-Displays a summary of the AI-GENIE analysis results, including the EGA
-model used, embedding type, starting and final number of items, and NMI
-values before and after reduction. The summary includes the number of
-iterations for both UVA (Unique Variable Analysis) and bootstrapped EGA
-steps.
+Displays a summary of the AI-GENIE analysis results for each item type
+(and, optionally, the pooled sample), including the EGA model used,
+embedding type, starting and final number of items, and NMI values
+before and after reduction.
 
 ## Usage
 
@@ -16,13 +15,14 @@ print_results(obj, obj2, run.overall)
 
 - obj:
 
-  A list object containing the OVERALL analysis results returned by
-  `get_results`.
+  A list containing the OVERALL analysis results (the `overall_result`
+  returned by `run_pipeline_for_all`). Only used when
+  `run.overall = TRUE`.
 
 - obj2:
 
-  A list object containing the ITEM-TYPE LEVEL analysis results returned
-  by `get_results`.
+  A named list containing the ITEM-TYPE LEVEL analysis results (the
+  `item_level` returned by `run_item_reduction_pipeline`).
 
 - run.overall:
 

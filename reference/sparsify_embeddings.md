@@ -40,7 +40,9 @@ sparsify_embeddings(
 
 ## Value
 
-Sparsified embedding matrix with same dimensions as input
+Sparsified embedding matrix with same dimensions as input. The attribute
+`sparsification_applied` records whether sparsification was applied and,
+if so, `quantiles_used` records the quantiles used.
 
 ## Details
 
@@ -51,6 +53,3 @@ Sparsification process:
 2.  If result is all zeros, try fallback quantiles
 
 3.  If still all zeros, return original matrix
-
-`silently` is always `TRUE`. It is only set to `FALSE` for developement
-and diagnostic purposes.

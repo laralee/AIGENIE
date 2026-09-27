@@ -33,8 +33,10 @@ GENIE(
 
 - items:
 
-  Data frame with columns: statement, attribute, type, ID. All columns
-  must be character type except ID (numeric or character allowed).
+  Data frame with columns: statement, attribute, type, ID. `statement`,
+  `attribute`, and `type` are coerced to character, and `attribute` and
+  `type` are trimmed and lowercased. `ID` may be numeric, character, or
+  factor, and must be unique.
 
   - `statement`: The actual item text
 
@@ -87,11 +89,13 @@ GENIE(
 
 - EGA.algorithm:
 
-  EGA community detection algorithm ("walktrap", "leiden", "louvain")
+  EGA community detection algorithm ("walktrap", "leiden", "louvain";
+  NULL uses "walktrap")
 
 - EGA.uni.method:
 
-  Unidimensionality assessment method ("louvain", "expand", "LE")
+  Unidimensionality assessment method ("louvain", "expand", "LE"; NULL
+  uses "louvain")
 
 - uva.cut.off:
 
@@ -118,7 +122,8 @@ GENIE(
 
 - embeddings.only:
 
-  If `TRUE`, return embeddings and stop (skip network analysis)
+  If `TRUE`, return the embedding matrix and stop (skip network
+  analysis)
 
 - run.overall:
 
@@ -149,31 +154,17 @@ GENIE(
 
   If `TRUE`, suppress progress messages
 
-- model:
-
-  Language model identifier (currently unused in GENIE)
-
 ## Value
 
 The structure of the return value depends on the function flags.
 
-**Defaults:** `items.only = FALSE`, `embeddings.only = FALSE`,
-`run.overall = FALSE`, `all.together = FALSE`.
+**When `embeddings.only = TRUE`:** Returns the numeric embedding matrix
+only (rows are embedding dimensions; columns are items, named by item
+`ID`).
 
-**When `items.only = TRUE`:** Returns a `data.frame` of generated items
-with columns: `ID`, `statement`, `type`, and `attribute`.
-
-**When `embeddings.only = TRUE`:** Returns a named `list` with two
+**Default behaviour** (`embeddings.only = FALSE`, `run.overall = FALSE`,
+`all.together = FALSE`): Returns a named `list` with two top-level
 elements:
-
-- `embeddings` — an embedding matrix/list (columns or rownames
-  correspond to item IDs).
-
-- `items` — the items `data.frame` described above.
-
-**Default behaviour** (`items.only = FALSE`, `embeddings.only = FALSE`,
-`run.overall = FALSE`, `all.together = FALSE`): Returns a named `list`
-with two top-level elements:
 
 - `item_type_level`:
 
@@ -182,43 +173,56 @@ with two top-level elements:
 
   `final_NMI`
 
-  :   Numeric: final normalized mutual information after reduction.
+  :   Numeric: normalized mutual information (NMI) of the final EGA
+      solution after reduction.
 
   `initial_NMI`
 
-  :   Numeric: initial NMI of the pre-reduced item pool.
+  :   Numeric: NMI of the pre-reduction item pool, estimated on the full
+      (dense) embeddings with the selected EGA model.
 
   `embeddings`
 
-  :   List or matrix of embeddings for this item type (see 'Notes on
-      `embeddings`' below).
+  :   List containing `selected` (`"full"` or `"sparse"`, the embedding
+      representation chosen for reduction), `selection_log` (a
+      `data.frame` of the NMI for each candidate EGA model and
+      representation), and `full` and `sparse` (embedding matrices for
+      the final items).
 
   `UVA`
 
-  :   List from Unique Variable Analysis (contains at least `n_removed`,
-      `n_sweeps`, `redundant_pairs` data.frame).
+  :   List from Unique Variable Analysis containing `n_removed`,
+      `n_sweeps`, `redundant_pairs` (a `data.frame` of redundant item
+      groups), and `removal_log` (a `data.frame` with one row per
+      removed item, its retained redundant partner, and the wTO
+      statistic).
 
   `bootEGA`
 
-  :   List with bootEGA results (e.g. `initial_boot`, `final_boot`,
-      `n_removed`, `items_removed`, `initial_boot_with_redundancies`).
+  :   List containing `post_uva_initial_boot` and `post_uva_final_boot`
+      (`bootEGA` objects before and after stability filtering),
+      `n_removed`, `items_removed` (a `data.frame` of removed items with
+      their item stability), and `initial_boot_with_redundancies` (a
+      `bootEGA` object for the pre-reduction pool, used in
+      `stability_plot`).
 
   `EGA.model_selected`
 
-  :   Character: chosen EGA model (e.g. `"TMFG"` or `"Glasso"`).
+  :   Character: the chosen EGA model (`"glasso"` or `"TMFG"`).
 
   `final_items`
 
-  :   `data.frame`: final items after reduction (columns include `ID`,
-      `statement`, `attribute`, `type`, `EGA_com`).
+  :   `data.frame`: final items after reduction (columns `ID`,
+      `statement`, `attribute`, `type`, and `EGA_com`, the final EGA
+      community).
 
   `final_EGA`
 
-  :   EGA object (from EGAnet) after reduction.
+  :   `EGA.fit` object (from EGAnet) for the final items.
 
   `initial_EGA`
 
-  :   Initial EGA object computed on the pre-reduced item set.
+  :   `EGA.fit` object for the pre-reduction item pool.
 
   `start_N`
 
@@ -230,49 +234,55 @@ with two top-level elements:
 
   `network_plot`
 
-  :   `ggplot` / `patchwork` object comparing networks before vs after
-      reduction.
+  :   `patchwork` object comparing networks before vs after reduction.
 
   `stability_plot`
 
-  :   `ggplot` / `patchwork` object showing item stability before vs
+  :   `patchwork` object showing networks and item stability before vs
       after reduction.
 
-- `overall`:
+  `filtering_audit`
 
-  Named list with aggregated results across all item types. Under the
-  default this contains:
+  :   `data.frame` with one row per removed item, giving the removal
+      stage (`"UVA"`, `"EGA_selection"`, `"bootEGA"`, or `"final_EGA"`),
+      the reason, the filtering statistic and cutoff, redundancy
+      partner(s), item stability, and pre-reduction network-loading
+      diagnostics. Network loadings are descriptive only; they are not
+      used as removal criteria.
 
-  `final_items`
+  `reduction_summary`
 
-  :   `data.frame` of final items across all types (columns as above).
+  :   `data.frame` giving the number of items (`N`), `NMI`,
+      `n_removed_at_stage`, and `delta_NMI` (change from `initial_NMI`)
+      at each stage of the reduction.
 
-  `embeddings`
+- `filtering_audit`:
 
-  :   Embeddings for the full reduced item set (see 'Notes on
-      `embeddings`' below). Note: `overall$embeddings` does **not**
-      include `selected`.
+  `data.frame` combining the per-type `filtering_audit` tables across
+  all item types.
 
-**When `run.overall = TRUE`** (`items.only = FALSE`,
-`embeddings.only = FALSE`):
-
-- `item_type_level`:
-
-  Same per-type structure as the default (see above).
-
-- `overall`:
-
-  A named list with aggregated results (not limited to `final_items` and
-  `embeddings`) containing: `final_NMI`, `initial_NMI`, `embeddings`,
-  `EGA.model_selected`, `final_items`, `final_EGA`, `initial_EGA`,
-  `start_N`, `final_N`, and `network_plot`.
-
-**When `all.together = TRUE`** (regardless of `run.overall`): Results
-are **not** split into `item_type_level` and `overall`. Instead the
-function returns a single named list containing: `final_NMI`,
-`initial_NMI`, `embeddings`, `UVA`, `bootEGA`, `EGA.model_selected`,
+**When `run.overall = TRUE`** (and more than one item type is present):
+the list additionally contains `overall`, a pooled post-reduction fit of
+all items retained by the type-level reductions. No further items are
+removed at this level. `overall` contains `final_NMI`, `initial_NMI`,
+`embeddings` (`selected`, `full`, and `sparse`), `EGA.model_selected`,
 `final_items`, `final_EGA`, `initial_EGA`, `start_N`, `final_N`,
-`network_plot`, and `stability_plot`.
+`network_plot`, `stability_plot` (always `NULL`), `filtering_audit`, and
+`reduction_summary`. Pooled NMI values compare EGA communities against
+type-by-attribute labels. The top-level `filtering_audit` then reports
+pooled (rather than within-type) pre-reduction network-loading
+diagnostics.
+
+**When `all.together = TRUE`** (and more than one item type is present):
+results are **not** split by item type. The function returns a single
+per-type named list (as described under `item_type_level` above) for the
+pooled analysis, in which EGA communities are compared against
+type-by-attribute labels. Here, `final_items` contains the original item
+rows (with their original `type` and `attribute` labels) plus the
+`EGA_com` column.
+
+**On failure:** if the reduction pipeline fails, the partial per-type
+results list is returned.
 
 ## References
 

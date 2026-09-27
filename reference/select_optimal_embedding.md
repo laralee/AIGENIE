@@ -32,7 +32,7 @@ select_optimal_embedding(
 
 - true_communities:
 
-  A named list of known communities.
+  A named factor of known communities (names are item IDs).
 
 - model:
 

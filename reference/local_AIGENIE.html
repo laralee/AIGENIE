@@ -167,11 +167,11 @@ on the user's machine.</p>
 
 
 <dt id="arg-ega-algorithm">EGA.algorithm<a class="anchor" aria-label="anchor" href="#arg-ega-algorithm"></a></dt>
-<dd><p>Community detection algorithm (default: "walktrap" when there is one trait and "louvain" when there are multiple)</p></dd>
+<dd><p>Community detection algorithm ("walktrap", "leiden", "louvain"; NULL uses "walktrap")</p></dd>
 
 
 <dt id="arg-ega-uni-method">EGA.uni.method<a class="anchor" aria-label="anchor" href="#arg-ega-uni-method"></a></dt>
-<dd><p>Unidimensionality method (default: "louvain")</p></dd>
+<dd><p>Unidimensionality method ("louvain", "expand", "LE"; NULL uses "louvain")</p></dd>
 
 
 <dt id="arg-uva-cut-off">uva.cut.off<a class="anchor" aria-label="anchor" href="#arg-uva-cut-off"></a></dt>
@@ -265,43 +265,41 @@ If only one item type is present, this argument will be ignored.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The structure of the return value depends on the function flags.</p>
-<p><strong>Defaults:</strong> <code>items.only = FALSE</code>, <code>embeddings.only = FALSE</code>,
-<code>run.overall = FALSE</code>, <code>keep.org = FALSE</code>, <code>all.together = FALSE</code>.</p>
 <p><strong>When <code>items.only = TRUE</code>:</strong>
-Returns a <code>data.frame</code> of generated items with columns:
-<code>ID</code>, <code>statement</code>, <code>type</code>, and <code>attribute</code>.</p>
+Returns a <code>data.frame</code> of generated items with columns
+<code>type</code>, <code>attribute</code>, <code>statement</code>, and <code>ID</code>.</p>
 <p><strong>When <code>embeddings.only = TRUE</code>:</strong>
-Returns a named <code>list</code> with two elements:</p><ul><li><p><code>embeddings</code> — an embedding matrix/list (columns or rownames correspond to item IDs).</p></li>
+Returns a named <code>list</code> with two elements:</p><ul><li><p><code>embeddings</code> — a numeric embedding matrix (rows are embedding dimensions; columns are items, named by item <code>ID</code>).</p></li>
 <li><p><code>items</code> — the items <code>data.frame</code> described above.</p></li>
 </ul><p><strong>Default behaviour</strong> (<code>items.only = FALSE</code>, <code>embeddings.only = FALSE</code>,
 <code>run.overall = FALSE</code>, <code>keep.org = FALSE</code>, <code>all.together = FALSE</code>):
 Returns a named <code>list</code> with two top-level elements:</p><dl><dt><code>item_type_level</code></dt>
 <dd><p>A named list where each name is an item type and each element is a per-type named list containing:</p><dl><dt><code>final_NMI</code></dt>
-<dd><p>Numeric: final normalized mutual information after reduction.</p></dd>
+<dd><p>Numeric: normalized mutual information (NMI) of the final EGA solution after reduction.</p></dd>
 
 <dt><code>initial_NMI</code></dt>
-<dd><p>Numeric: initial NMI of the pre-reduced item pool.</p></dd>
+<dd><p>Numeric: NMI of the pre-reduction item pool, estimated on the full (dense) embeddings with the selected EGA model.</p></dd>
 
 <dt><code>embeddings</code></dt>
-<dd><p>List or matrix of embeddings for this item type (see 'Notes on <code>embeddings</code>' below).</p></dd>
+<dd><p>List containing <code>selected</code> (<code>"full"</code> or <code>"sparse"</code>, the embedding representation chosen for reduction), <code>selection_log</code> (a <code>data.frame</code> of the NMI for each candidate EGA model and representation), and <code>full</code> and <code>sparse</code> (embedding matrices for the final items).</p></dd>
 
 <dt><code>UVA</code></dt>
-<dd><p>List from Unique Variable Analysis (contains at least <code>n_removed</code>, <code>n_sweeps</code>, <code>redundant_pairs</code> data.frame).</p></dd>
+<dd><p>List from Unique Variable Analysis containing <code>n_removed</code>, <code>n_sweeps</code>, <code>redundant_pairs</code> (a <code>data.frame</code> of redundant item groups), and <code>removal_log</code> (a <code>data.frame</code> with one row per removed item, its retained redundant partner, and the wTO statistic).</p></dd>
 
 <dt><code>bootEGA</code></dt>
-<dd><p>List with bootEGA results (e.g. <code>initial_boot</code>, <code>final_boot</code>, <code>n_removed</code>, <code>items_removed</code>, <code>initial_boot_with_redundancies</code>).</p></dd>
+<dd><p>List containing <code>post_uva_initial_boot</code> and <code>post_uva_final_boot</code> (<code>bootEGA</code> objects before and after stability filtering), <code>n_removed</code>, <code>items_removed</code> (a <code>data.frame</code> of removed items with their item stability), and <code>initial_boot_with_redundancies</code> (a <code>bootEGA</code> object for the pre-reduction pool, used in <code>stability_plot</code>).</p></dd>
 
 <dt><code>EGA.model_selected</code></dt>
-<dd><p>Character: chosen EGA model (e.g. <code>"TMFG"</code> or <code>"Glasso"</code>).</p></dd>
+<dd><p>Character: the chosen EGA model (<code>"glasso"</code> or <code>"TMFG"</code>).</p></dd>
 
 <dt><code>final_items</code></dt>
-<dd><p><code>data.frame</code>: final items after reduction (columns include <code>ID</code>, <code>statement</code>, <code>attribute</code>, <code>type</code>, <code>EGA_com</code>).</p></dd>
+<dd><p><code>data.frame</code>: final items after reduction (columns <code>ID</code>, <code>type</code>, <code>attribute</code>, <code>statement</code>, and <code>EGA_com</code>, the final EGA community).</p></dd>
 
 <dt><code>final_EGA</code></dt>
-<dd><p>EGA object (from EGAnet) after reduction.</p></dd>
+<dd><p><code>EGA.fit</code> object (from EGAnet) for the final items.</p></dd>
 
 <dt><code>initial_EGA</code></dt>
-<dd><p>Initial EGA object computed on the pre-reduced item set.</p></dd>
+<dd><p><code>EGA.fit</code> object for the pre-reduction item pool.</p></dd>
 
 <dt><code>start_N</code></dt>
 <dd><p>Integer: initial number of items in this type.</p></dd>
@@ -310,47 +308,49 @@ Returns a named <code>list</code> with two top-level elements:</p><dl><dt><code>
 <dd><p>Integer: final number of items in this type.</p></dd>
 
 <dt><code>network_plot</code></dt>
-<dd><p><code>ggplot</code> / <code>patchwork</code> object comparing networks before vs after reduction.</p></dd>
+<dd><p><code>patchwork</code> object comparing networks before vs after reduction.</p></dd>
 
 <dt><code>stability_plot</code></dt>
-<dd><p><code>ggplot</code> / <code>patchwork</code> object showing item stability before vs after reduction.</p></dd>
+<dd><p><code>patchwork</code> object showing networks and item stability before vs after reduction.</p></dd>
+
+<dt><code>filtering_audit</code></dt>
+<dd><p><code>data.frame</code> with one row per removed item, giving the removal stage (<code>"UVA"</code>, <code>"EGA_selection"</code>, <code>"bootEGA"</code>, or <code>"final_EGA"</code>), the reason, the filtering statistic and cutoff, redundancy partner(s), item stability, and pre-reduction network-loading diagnostics. Network loadings are descriptive only; they are not used as removal criteria.</p></dd>
+
+<dt><code>reduction_summary</code></dt>
+<dd><p><code>data.frame</code> giving the number of items (<code>N</code>), <code>NMI</code>, <code>n_removed_at_stage</code>, and <code>delta_NMI</code> (change from <code>initial_NMI</code>) at each stage of the reduction.</p></dd>
 
 
 </dl></dd>
 
-
-<dt><code>overall</code></dt>
-<dd><p>Named list with aggregated results across all item types. Under the default this contains:</p><dl><dt><code>final_items</code></dt>
-<dd><p><code>data.frame</code> of final items across all types (columns as above).</p></dd>
-
-<dt><code>embeddings</code></dt>
-<dd><p>Embeddings for the full reduced item set (see 'Notes on <code>embeddings</code>' below). Note: <code>overall$embeddings</code> does <strong>not</strong> include <code>selected</code>.</p></dd>
+<dt><code>filtering_audit</code></dt>
+<dd><p><code>data.frame</code> combining the per-type <code>filtering_audit</code> tables across all item types.</p></dd>
 
 
-</dl></dd>
-
-
-</dl><p><strong>When <code>keep.org = TRUE</code></strong> (in addition to defaults above):
-The top-level shape remains (<code>item_type_level</code> and <code>overall</code>) but includes original (pre-reduction) information:</p><dl><dt><code>item_type_level</code></dt>
-<dd><p>Each per-type sublist contains:
-<code>final_NMI</code>, <code>initial_NMI</code>, <code>embeddings</code>, <code>UVA</code>, <code>bootEGA</code>, <code>EGA.model_selected</code>, <code>final_items</code>, <code>initial_items</code>, <code>final_EGA</code>, <code>initial_EGA</code>, <code>start_N</code>, <code>final_N</code>, <code>network_plot</code>, <code>stability_plot</code>.</p></dd>
-
-<dt><code>overall</code></dt>
-<dd><p>Contains <code>final_items</code>, <code>initial_items</code>, and <code>embeddings</code> for the full item pool.</p></dd>
-
-
-</dl><p>For <code>keep.org = TRUE</code>, per-type <code>embeddings</code> contains at least: <code>full_org</code>, <code>sparse_org</code>, <code>selected</code>, <code>full</code>, and <code>sparse</code>. (<code>overall$embeddings</code> contains the same subcomponents <strong>except</strong> <code>selected</code> is omitted.)</p>
-<p><strong>When <code>run.overall = TRUE</code></strong> (<code>items.only = FALSE</code>, <code>embeddings.only = FALSE</code>):</p><dl><dt><code>item_type_level</code></dt>
-<dd><p>Same per-type structure as the default (see above).</p></dd>
-
-<dt><code>overall</code></dt>
-<dd><p>A named list with aggregated results (not limited to <code>final_items</code> and <code>embeddings</code>) containing:
-<code>final_NMI</code>, <code>initial_NMI</code>, <code>embeddings</code>, <code>EGA.model_selected</code>, <code>final_items</code>, <code>final_EGA</code>, <code>initial_EGA</code>, <code>start_N</code>, <code>final_N</code>, and <code>network_plot</code>.</p></dd>
-
-
-</dl><p><strong>When <code>all.together = TRUE</code></strong> (regardless of <code>run.overall</code>):
-Results are <strong>not</strong> split into <code>item_type_level</code> and <code>overall</code>. Instead the function returns a single named list (applies to the full — possibly <code>keep.org</code> modified — result set) containing:
-<code>final_NMI</code>, <code>initial_NMI</code>, <code>embeddings</code>, <code>UVA</code>, <code>bootEGA</code>, <code>EGA.model_selected</code>, <code>final_items</code>, <code>final_EGA</code>, <code>initial_EGA</code>, <code>start_N</code>, <code>final_N</code>, <code>network_plot</code>, and <code>stability_plot</code>.</p>
+</dl><p><strong>When <code>keep.org = TRUE</code></strong> (in addition to the defaults above):
+each per-type sublist also contains <code>initial_items</code> (the pre-reduction items, with
+their <code>EGA_com</code> from the initial EGA), and its <code>embeddings</code> list also contains
+<code>full_org</code> and <code>sparse_org</code> (the full and sparse embedding matrices for the
+pre-reduction item pool).</p>
+<p><strong>When <code>run.overall = TRUE</code></strong> (and more than one item type is present):
+the list additionally contains <code>overall</code>, a pooled post-reduction fit of all items
+retained by the type-level reductions. No further items are removed at this level.
+<code>overall</code> contains <code>final_NMI</code>, <code>initial_NMI</code>, <code>embeddings</code> (<code>selected</code>, <code>full</code>, and
+<code>sparse</code>), <code>EGA.model_selected</code>, <code>final_items</code>, <code>final_EGA</code>, <code>initial_EGA</code>, <code>start_N</code>,
+<code>final_N</code>, <code>network_plot</code>, <code>stability_plot</code> (always <code>NULL</code>), <code>filtering_audit</code>, and
+<code>reduction_summary</code>. Pooled NMI values compare EGA communities against
+type-by-attribute labels. With <code>keep.org = TRUE</code>, <code>overall</code> also contains
+<code>initial_items</code>, and <code>overall$embeddings</code> also contains <code>full_org</code> and <code>sparse_org</code>. The
+top-level <code>filtering_audit</code> then reports pooled (rather than within-type)
+pre-reduction network-loading diagnostics.</p>
+<p><strong>When <code>all.together = TRUE</code></strong> (and more than one item type is present):
+results are <strong>not</strong> split by item type. The function returns a single per-type
+named list (as described under <code>item_type_level</code> above) for the pooled analysis, in
+which EGA communities are compared against type-by-attribute labels. Here,
+<code>final_items</code> (and <code>initial_items</code>, when <code>keep.org = TRUE</code>) contain the original item
+rows (with their original <code>type</code> and <code>attribute</code> labels) plus the <code>EGA_com</code> column.</p>
+<p><strong>On failure:</strong> if item generation or embedding fails, the items generated so far are
+returned. If the reduction pipeline fails, the partial per-type results list is
+returned.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

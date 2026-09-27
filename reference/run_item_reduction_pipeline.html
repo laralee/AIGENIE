@@ -119,7 +119,9 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A named list of pipeline results, one per item type</p>
+    <p>A list with <code>item_level</code> (a named list of pipeline results, one per
+item type; <code>NULL</code> for any type whose pipeline errored) and <code>success</code>
+(logical; <code>FALSE</code> if any item type failed).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

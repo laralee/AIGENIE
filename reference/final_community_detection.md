@@ -23,7 +23,7 @@ final_community_detection(
 
 - true_communities:
 
-  Named list mapping items to known communities.
+  Named factor mapping item IDs to known communities.
 
 - model:
 

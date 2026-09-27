@@ -1,7 +1,8 @@
 # Generate Items via LLM
 
 Generates scale items using the specified LLM provider. Supports OpenAI,
-Groq, and local GGUF models.
+Groq, and Anthropic models (local GGUF models are handled by
+[`generate_items_via_local_llm()`](https://laralee.github.io/AIGENIE/reference/generate_items_via_local_llm.md)).
 
 ## Usage
 
@@ -58,6 +59,10 @@ generate_items_via_llm(
 - openai.API:
 
   Optional OpenAI API key
+
+- anthropic.API:
+
+  Optional Anthropic API key
 
 - target.N:
 

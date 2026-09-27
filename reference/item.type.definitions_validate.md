@@ -23,7 +23,8 @@ item.type.definitions_validate(item.type.definitions, items.attributes)
 
 - items.attributes:
 
-  A cleaned list from `validate_items.attributes()`.
+  A cleaned list from
+  [`items.attributes_validate()`](https://laralee.github.io/AIGENIE/reference/items.attributes_validate.md).
 
 ## Value
 

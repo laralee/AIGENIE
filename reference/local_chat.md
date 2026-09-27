@@ -1,8 +1,8 @@
 # Chat with a local LLM (no API calls)
 
 Send one or more prompts to a locally available large-language model
-(LLM) without making remote API calls. The local model must be
-installed/available on the machine as a local model directory. This
+(LLM) without making remote API calls. The local model must be available
+on the machine as a GGUF model file (run via llama-cpp-python). This
 function is intended for fully local inference (no API key required).
 
 ## Usage
@@ -32,9 +32,9 @@ local_chat(
 
 - model.path:
 
-  A character string. Path for the local model file. The function does
-  not download models; ensure the model is present locally before using
-  this function.
+  A character string. Path to the local GGUF model file. The function
+  does not download models; ensure the model is present locally before
+  using this function.
 
 - n.ctx:
 
@@ -44,7 +44,7 @@ local_chat(
 - n.gpu.layers:
 
   Integer, default `-1`. Number of model layers to place on GPU (if
-  supported). Use `-1` to let the runtime choose automatically.
+  supported). Use `-1` to offload all layers, or `0` for CPU only.
 
 - max.tokens:
 

@@ -1,6 +1,6 @@
 # Validate `top.p` for Text Generation
 
-Ensures `top.p` is a numeric value between 0 and 1, or NULL.
+Ensures `top.p` is a numeric value between 0 and 1.
 
 ## Usage
 

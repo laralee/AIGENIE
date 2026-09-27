@@ -224,7 +224,7 @@ Useful links:
 [`AIGENIE`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md) for
 the main function,
 [`GENIE`](https://laralee.github.io/AIGENIE/reference/GENIE.md) for
-embedding-only analysis,
+reducing and validating user-supplied items,
 [`EGAnet`](https://rdrr.io/pkg/EGAnet/man/EGAnet-package.html) for the
 underlying EGA analysis methods.
 

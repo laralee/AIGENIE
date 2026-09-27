@@ -24,8 +24,9 @@ item.examples_validate(item.examples, items.attributes)
 
 - items.attributes:
 
-  A cleaned list from `validate_items.attributes()`. All names and
-  values must be normalized (lowercased and trimmed).
+  A cleaned list from
+  [`items.attributes_validate()`](https://laralee.github.io/AIGENIE/reference/items.attributes_validate.md).
+  All names and values must be normalized (lowercased and trimmed).
 
 ## Value
 

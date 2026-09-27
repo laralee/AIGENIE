@@ -1,7 +1,7 @@
 # Validate and Normalize `prompt.notes`
 
 Accepts a string, NULL, or a named list of strings/NULLs. Ensures one
-entry per attribute in `items.attributes`, returning a fully named and
+entry per item type in `items.attributes`, returning a fully named and
 cleaned list.
 
 ## Usage
@@ -18,8 +18,9 @@ validate_prompt.notes(prompt.notes, items.attributes)
 
 - items.attributes:
 
-  A cleaned list from `validate_items.attributes()`.
+  A cleaned list from
+  [`items.attributes_validate()`](https://laralee.github.io/AIGENIE/reference/items.attributes_validate.md).
 
 ## Value
 
-A named list of strings, one per attribute, with NULLs replaced by "".
+A named list of strings, one per item type, with NULLs replaced by "".

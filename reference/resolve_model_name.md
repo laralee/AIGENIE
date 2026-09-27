@@ -19,8 +19,9 @@ resolve_model_name(model, silently)
 
 - silently:
 
-  A flag to determine if warnings should be printed to the screen.
+  Currently unused.
 
 ## Value
 
-A standardized model name.
+A standardized model name. Known aliases are returned with a provider
+prefix (e.g., `"OpenAI/gpt-4o"`); other inputs are returned trimmed.

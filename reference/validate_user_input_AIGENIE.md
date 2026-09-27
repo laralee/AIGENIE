@@ -92,7 +92,9 @@ validate_user_input_AIGENIE(
 
 - embedding.model:
 
-  A string or NULL. Must be one of the accepted OpenAI embedding models.
+  A string. An OpenAI, Jina AI, or HuggingFace embedding model;
+  validated via
+  [`embedding.model_validate()`](https://laralee.github.io/AIGENIE/reference/embedding.model_validate.md).
 
 - target.N:
 
@@ -136,7 +138,7 @@ validate_user_input_AIGENIE(
 
 - EGA.model:
 
-  A string or NULL. One of `"BGGM"`, `"glasso"`, or `"TMFG"`.
+  A string or NULL. One of `"glasso"` or `"TMFG"`.
 
 - EGA.algorithm:
 
@@ -227,6 +229,22 @@ A named list containing:
 - custom:
 
   A flag signaling whether we are in custom mode or not
+
+- provider:
+
+  Detected embedding provider (`"openai"`, `"jina"`, or `"huggingface"`)
+
+- all.together:
+
+  Validated `all.together` flag
+
+- run.overall:
+
+  Validated `run.overall` flag
+
+`EGA.model`, `EGA.uni.method`, and `EGA.algorithm` are each returned as
+a list with `type` and `overall` elements (see
+[`validate_ega_params()`](https://laralee.github.io/AIGENIE/reference/validate_ega_params.md)).
 
 ## Details
 

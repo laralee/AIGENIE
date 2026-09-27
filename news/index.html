@@ -43,7 +43,7 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="2.1.2" id="aigenie-212">AIGENIE 2.1.2<a class="anchor" aria-label="anchor" href="#aigenie-212"></a></h2>
+<h2 class="pkg-version" data-toc-text="2.1.2" id="aigenie-212">AIGENIE 2.1.2<a class="anchor" aria-label="anchor" href="#aigenie-212"></a></h2><p class="text-muted">CRAN release: 2026-09-08</p>
 <div class="section level3">
 <h3 id="new-features-2-1-2">New features<a class="anchor" aria-label="anchor" href="#new-features-2-1-2"></a></h3>
 <ul><li>Exposed <code>boot.iter</code> and <code>ncores</code> in <code><a href="../reference/AIGENIE.html">AIGENIE()</a></code>, <code><a href="../reference/GENIE.html">GENIE()</a></code>, <code><a href="../reference/local_AIGENIE.html">local_AIGENIE()</a></code>, and <code><a href="../reference/local_GENIE.html">local_GENIE()</a></code>. The <code>boot.iter</code> default remains 500, matching the current reduction pipeline; <code>ncores = NULL</code> preserves EGAnet’s existing default core behavior.</li>
@@ -52,6 +52,19 @@
 <li>Added pre-reduction network-loading diagnostics for filtered items.</li>
 <li>Added bundled GPT-5.4 items and frozen embeddings for reproducible GENIE examples.</li>
 <li>Added an official filtering-audit vignette and pkgdown documentation site.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-2-1-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-2-1-2"></a></h3>
+<ul><li>
+<code><a href="../reference/AIGENIE.html">AIGENIE()</a></code> and <code><a href="../reference/local_AIGENIE.html">local_AIGENIE()</a></code> now honor a user-supplied <code>EGA.model</code>; previously it was silently ignored and both models were always compared.</li>
+<li>With <code>all.together = TRUE</code>, <code>final_items</code> (and <code>initial_items</code> when <code>keep.org = TRUE</code>) now retain the <code>EGA_com</code> community column alongside the original <code>type</code> and <code>attribute</code> labels.</li>
+<li>
+<code><a href="../reference/AIGENIE.html">AIGENIE()</a></code> now returns the type-level results when the <code>run.overall</code> fit fails, even when <code>silently = TRUE</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-2-1-2">Documentation<a class="anchor" aria-label="anchor" href="#documentation-2-1-2"></a></h3>
+<ul><li>Corrected stale function documentation, including the structure of the returned objects and the <code>EGA.algorithm</code> default (<code>"walktrap"</code>).</li>
+<li>Internal helpers are no longer listed in the package reference index.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="reproducibility-2-1-2">Reproducibility<a class="anchor" aria-label="anchor" href="#reproducibility-2-1-2"></a></h3>

@@ -2,6 +2,8 @@
 
 ## AIGENIE 2.1.2
 
+CRAN release: 2026-09-08
+
 ### New features
 
 - Exposed `boot.iter` and `ncores` in
@@ -21,6 +23,26 @@
   GENIE examples.
 - Added an official filtering-audit vignette and pkgdown documentation
   site.
+
+### Bug fixes
+
+- [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md)
+  and
+  [`local_AIGENIE()`](https://laralee.github.io/AIGENIE/reference/local_AIGENIE.md)
+  now honor a user-supplied `EGA.model`; previously it was silently
+  ignored and both models were always compared.
+- With `all.together = TRUE`, `final_items` (and `initial_items` when
+  `keep.org = TRUE`) now retain the `EGA_com` community column alongside
+  the original `type` and `attribute` labels.
+- [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md)
+  now returns the type-level results when the `run.overall` fit fails,
+  even when `silently = TRUE`.
+
+### Documentation
+
+- Corrected stale function documentation, including the structure of the
+  returned objects and the `EGA.algorithm` default (`"walktrap"`).
+- Internal helpers are no longer listed in the package reference index.
 
 ### Reproducibility
 

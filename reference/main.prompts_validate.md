@@ -1,7 +1,7 @@
 # Validate and Normalize `main.prompts`
 
 Validates that `main.prompts` is a named list of non-empty strings, one
-for each attribute in `items.attributes`, matched by normalized name.
+for each item type in `items.attributes`, matched by normalized name.
 
 ## Usage
 
@@ -13,11 +13,12 @@ main.prompts_validate(main.prompts, items.attributes, silently)
 
 - main.prompts:
 
-  A named list of prompt strings, one per attribute.
+  A named list of prompt strings, one per item type.
 
 - items.attributes:
 
-  A cleaned list from `validate_items.attributes()`.
+  A cleaned list from
+  [`items.attributes_validate()`](https://laralee.github.io/AIGENIE/reference/items.attributes_validate.md).
 
 - silently:
 

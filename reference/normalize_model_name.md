@@ -1,7 +1,4 @@
-# Normalize Model Name (Legacy Compatibility)
-
-Validates and normalizes model names. This function maintains backward
-compatibility with existing code.
+# Normalize and Validate Model Names with Provider Prefixes
 
 Converts model names to the standardized format: Provider/model-name
 Maintains backward compatibility with existing model names.
@@ -9,14 +6,6 @@ Maintains backward compatibility with existing model names.
 ## Usage
 
 ``` r
-normalize_model_name(
-  model,
-  groq.API = NULL,
-  openai.API = NULL,
-  anthropic.API = NULL,
-  silently = FALSE
-)
-
 normalize_model_name(
   model,
   groq.API = NULL,
@@ -46,10 +35,9 @@ normalize_model_name(
 
 - silently:
 
-  Logical, suppress warnings
+  Logical, suppress messages and warnings
 
 ## Value
 
-Normalized model name string
-
-List with normalized model name and detected provider
+List with `model` (the normalized, provider-prefixed model name) and
+`provider` (`"openai"`, `"groq"`, or `"anthropic"`)

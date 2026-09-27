@@ -33,6 +33,11 @@ detect_llm_provider(
 
   Optional HuggingFace token
 
+- anthropic.API:
+
+  Optional Anthropic API key
+
 ## Value
 
-A list with provider name and normalized model string
+A list with `provider` (`"openai"`, `"anthropic"`, `"groq"`, or
+`"huggingface"`) and `model` (the model name without a provider prefix)

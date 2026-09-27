@@ -76,4 +76,6 @@ run_item_reduction_pipeline(
 
 ## Value
 
-A named list of pipeline results, one per item type
+A list with `item_level` (a named list of pipeline results, one per item
+type; `NULL` for any type whose pipeline errored) and `success`
+(logical; `FALSE` if any item type failed).

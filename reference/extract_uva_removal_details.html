@@ -65,8 +65,43 @@ partners for auditability.</p>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
-  </main></div>
+
+<dl><dt id="arg-uva-object">uva_object<a class="anchor" aria-label="anchor" href="#arg-uva-object"></a></dt>
+<dd><p>An <code><a href="https://rdrr.io/pkg/EGAnet/man/UVA.html" class="external-link">EGAnet::UVA</a></code> result for the current sweep.</p></dd>
+
+
+<dt id="arg-removed-ids">removed_ids<a class="anchor" aria-label="anchor" href="#arg-removed-ids"></a></dt>
+<dd><p>Character vector of item IDs removed in this sweep.</p></dd>
+
+
+<dt id="arg-remaining-ids">remaining_ids<a class="anchor" aria-label="anchor" href="#arg-remaining-ids"></a></dt>
+<dd><p>Character vector of item IDs retained after this sweep.</p></dd>
+
+
+<dt id="arg-items">items<a class="anchor" aria-label="anchor" href="#arg-items"></a></dt>
+<dd><p>Data frame with <code>ID</code> and <code>statement</code> columns.</p></dd>
+
+
+<dt id="arg-sweep">sweep<a class="anchor" aria-label="anchor" href="#arg-sweep"></a></dt>
+<dd><p>Integer. The UVA sweep number.</p></dd>
+
+
+<dt id="arg-cut-off">cut.off<a class="anchor" aria-label="anchor" href="#arg-cut-off"></a></dt>
+<dd><p>Numeric. The wTO threshold used by UVA.</p></dd>
+
+</dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>A data frame with one row per removed item: <code>ID</code>, <code>uva_sweep</code>,
+<code>redundant_with_ID</code>, <code>redundant_with_statement</code>, <code>wTO</code>,
+<code>all_redundant_with_IDs</code>, and <code>all_redundant_wTO</code>.</p>
+    </div>
+
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

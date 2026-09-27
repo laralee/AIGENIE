@@ -1,12 +1,12 @@
-# Validate and Expand `target.N` for Each Item Attribute
+# Validate and Expand `target.N` for Each Item Type
 
 Ensures that `target.N` is either:
 
-- NULL -\> defaults to 60 per attribute
+- NULL -\> defaults to 60 per item type
 
-- A single integer -\> repeated for each attribute
+- A single integer -\> repeated for each item type
 
-- A list/vector of integers -\> must match number of attributes
+- A named list/vector of integers -\> names must match the item types
 
 ## Usage
 
@@ -28,7 +28,8 @@ target.N_validate(
 
 - items.attributes:
 
-  A cleaned list returned from `validate_items.attributes()`.
+  A cleaned list returned from
+  [`items.attributes_validate()`](https://laralee.github.io/AIGENIE/reference/items.attributes_validate.md).
 
 - items.only:
 
@@ -44,4 +45,9 @@ target.N_validate(
 
 ## Value
 
-A list of integers, one per attribute (named).
+A named list of integers, one per item type.
+
+## Details
+
+Warns when fewer than 15 items per attribute would be generated (unless
+only items or embeddings are requested).

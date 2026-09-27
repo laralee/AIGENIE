@@ -1,10 +1,9 @@
 # Plot Comparisons
 
-Generates a comparative plot of two network analysis results, typically
-representing the item network before and after AI-GENIE reduction. The
-plot includes provided captions, displays NMI values for each network,
-and incorporates a scale title to contextualize the comparison. The
-layout may be adjusted based on the `ident` parameter.
+Generates a side-by-side comparison of two network analysis results,
+typically representing the item network before and after AI-GENIE
+reduction. The plot includes the provided captions, displays NMI values
+for each network, and reports the change in NMI as a subtitle.
 
 ## Usage
 
@@ -49,8 +48,5 @@ plot_comparison(p1, p2, caption1, caption2, nmi2, nmi1, title)
 
 ## Value
 
-A plot object that visually compares the two network structures. The
-plot will typically display the two networks (either side-by-side or in
-an overlaid manner) with the provided captions and NMI values. The exact
-type of the plot object (e.g., a `ggplot` object or a base R plot)
-depends on the implementation.
+A `patchwork` object displaying the two networks side by side with the
+provided captions and NMI values.

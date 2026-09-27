@@ -50,9 +50,9 @@ validate_user_input_local_AIGENIE(
 
 \item{main.prompts}{Optional custom prompts}
 
-\item{temperature}{LLM temperature}
+\item{temperature}{LLM temperature (NULL uses the local model's default)}
 
-\item{top.p}{LLM top-p sampling}
+\item{top.p}{LLM top-p sampling (NULL uses the local model's default)}
 
 \item{target.N}{Target number of items}
 

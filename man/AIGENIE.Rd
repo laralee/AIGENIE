@@ -13,8 +13,8 @@ AIGENIE(
   anthropic.API = NULL,
   jina.API = NULL,
   model = "gpt4o",
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   embedding.model = "text-embedding-3-small",
   target.N = NULL,
   domain = NULL,
@@ -101,14 +101,19 @@ Aliases such as \code{"gpt4o"}, \code{"gpt5"}, \code{"oss"}, \code{"llama"}, \co
 which API service to use based on the model name and available API keys. Use
 \code{\link{list_available_models}} to see the models currently offered by each provider.}
 
-\item{temperature}{A numeric value (optional, default: 1). Controls the randomness and
-creativity of the LLM's item generation. Must be between 0-2, where lower values
-produce more deterministic outputs and higher values increase creativity and variability.}
+\item{temperature}{A numeric value or NULL (optional, default: NULL). Controls the
+randomness and creativity of the LLM's item generation. Must be between 0-2, where
+lower values produce more deterministic outputs and higher values increase creativity
+and variability. When NULL, no \code{temperature} is sent and the model's default is used.
+Many models no longer accept this parameter and return an API error if it is sent, so
+a warning is issued when it is set; only set it if you know the model accepts it.}
 
-\item{top.p}{A numeric value (optional, default: 1). Controls nucleus sampling for the
-LLM's text generation. Must be between 0-1, where lower values make the model more
-focused and higher values allow more diverse outputs. Can be used in conjunction
-with \code{temperature}.}
+\item{top.p}{A numeric value or NULL (optional, default: NULL). Controls nucleus
+sampling for the LLM's text generation. Must be between 0-1, where lower values make
+the model more focused and higher values allow more diverse outputs. When NULL, no
+\code{top_p} is sent and the model's default is used. As with \code{temperature}, a warning is
+issued when it is set. Recent Anthropic models do not accept \code{temperature} and
+\code{top.p} together.}
 
 \item{embedding.model}{A character string (optional, default: "text-embedding-3-small").
 Specifies which model to use for generating embeddings of items. Supports multiple providers:

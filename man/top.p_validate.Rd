@@ -7,9 +7,10 @@
 top.p_validate(top.p)
 }
 \arguments{
-\item{top.p}{A numeric value}
+\item{top.p}{A numeric value or NULL}
 }
 \description{
-Ensures \code{top.p} is a numeric value between 0 and 1.
+Ensures \code{top.p} is NULL (not sent to the model) or a numeric value between
+0 and 1.
 }
 \keyword{internal}

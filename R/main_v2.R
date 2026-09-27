@@ -68,14 +68,19 @@
 #'   which API service to use based on the model name and available API keys. Use
 #'   \code{\link{list_available_models}} to see the models currently offered by each provider.
 #'
-#' @param temperature A numeric value (optional, default: 1). Controls the randomness and
-#'   creativity of the LLM's item generation. Must be between 0-2, where lower values
-#'   produce more deterministic outputs and higher values increase creativity and variability.
+#' @param temperature A numeric value or NULL (optional, default: NULL). Controls the
+#'   randomness and creativity of the LLM's item generation. Must be between 0-2, where
+#'   lower values produce more deterministic outputs and higher values increase creativity
+#'   and variability. When NULL, no `temperature` is sent and the model's default is used.
+#'   Many models no longer accept this parameter and return an API error if it is sent, so
+#'   a warning is issued when it is set; only set it if you know the model accepts it.
 #'
-#' @param top.p A numeric value (optional, default: 1). Controls nucleus sampling for the
-#'   LLM's text generation. Must be between 0-1, where lower values make the model more
-#'   focused and higher values allow more diverse outputs. Can be used in conjunction
-#'   with `temperature`.
+#' @param top.p A numeric value or NULL (optional, default: NULL). Controls nucleus
+#'   sampling for the LLM's text generation. Must be between 0-1, where lower values make
+#'   the model more focused and higher values allow more diverse outputs. When NULL, no
+#'   `top_p` is sent and the model's default is used. As with `temperature`, a warning is
+#'   issued when it is set. Recent Anthropic models do not accept `temperature` and
+#'   `top.p` together.
 #'
 #' @param embedding.model A character string (optional, default: "text-embedding-3-small").
 #'   Specifies which model to use for generating embeddings of items. Supports multiple providers:
@@ -575,8 +580,8 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
 
                        # LLM parameters
                        groq.API = NULL, anthropic.API = NULL, jina.API = NULL,
-                       model = "gpt4o", temperature = 1,
-                       top.p = 1, embedding.model = "text-embedding-3-small",
+                       model = "gpt4o", temperature = NULL,
+                       top.p = NULL, embedding.model = "text-embedding-3-small",
                        target.N = NULL,
 
                        # Prompt parameters
@@ -826,8 +831,10 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
 #' @param model.path Path to local GGUF model file (required)
 #' @param embedding.model Name or path to local embedding model (default: "bert-base-uncased")
 #' @param main.prompts Custom prompts for item generation (optional)
-#' @param temperature LLM temperature for randomness (0-2, default: 1)
-#' @param top.p Top-p nucleus sampling parameter (0-1, default: 1)
+#' @param temperature LLM temperature for randomness (0-2). Default NULL uses the
+#'   local model's (llama.cpp) default.
+#' @param top.p Top-p nucleus sampling parameter (0-1). Default NULL uses the local
+#'   model's (llama.cpp) default.
 #' @param target.N Number of items to generate per type (default: 60)
 #' @param domain Content domain (e.g., "psychological")
 #' @param scale.title Name of the scale
@@ -966,8 +973,8 @@ local_AIGENIE <- function(
 
   # Optional content parameters
   main.prompts = NULL,
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   target.N = NULL,
   domain = NULL,
   scale.title = NULL,
@@ -2596,9 +2603,13 @@ local_GENIE <- function(
 #'   Anthropic API key (required when using an Anthropic model).
 #' @param reps Integer, default `1`. The number of times each prompt will be
 #'   given to the model.
-#' @param top.p Numeric, default `1`. Top-p (nucleus) sampling parameter.
-#' @param temperature Numeric, default `1`. Sampling temperature controlling
-#'   response randomness.
+#' @param top.p Numeric or `NULL`, default `NULL`. Top-p (nucleus) sampling
+#'   parameter. When `NULL`, it is not sent and the model's default is used.
+#'   A warning is issued if set, since many models no longer accept it.
+#' @param temperature Numeric or `NULL`, default `NULL`. Sampling temperature
+#'   controlling response randomness. When `NULL`, it is not sent and the model's
+#'   default is used. A warning is issued if set, since many models no longer
+#'   accept it.
 #' @param max.tokens Integer, default `2048L`. Maximum number of tokens
 #'   requested from the model.
 #' @param silently Logical, default `FALSE`. If `FALSE`, progress messages
@@ -2615,6 +2626,8 @@ local_GENIE <- function(
 #' @details
 #' The function includes a retry mechanism (up to 5 attempts) for transient API
 #' failures. If all attempts fail, the function stops with an informative error.
+#' Errors that mention `temperature` or `top_p` are not retried, since the model
+#' is likely rejecting those parameters.
 #'
 #' @section Important:
 #' This function requires a valid API key corresponding to the selected model.
@@ -2734,8 +2747,8 @@ chat <- function(prompts, model,
                  groq.API = NULL,
                  anthropic.API = NULL,
                  reps = 1,
-                 top.p = 1,
-                 temperature = 1,
+                 top.p = NULL,
+                 temperature = NULL,
                  max.tokens = 2048L,
                  silently = FALSE) {
 
@@ -2817,6 +2830,11 @@ chat <- function(prompts, model,
 
           last_error_msg <- res$message
 
+          # Rejected sampling parameters will fail on every retry: stop right away
+          if (is_sampling_param_error(last_error_msg)) {
+            stop("API call failed: ", last_error_msg, call. = FALSE)
+          }
+
           if (!silently && attempt < max_attempts) {
             cat(sprintf(
               "\nAttempt %d failed: %s. Retrying in %ds...\n",
@@ -2895,9 +2913,11 @@ chat <- function(prompts, model,
 #'   the prompts.
 #' @param reps Integer, default `1`. The number of times each prompt will be
 #'   given to the model (independent generations).
-#' @param temperature Numeric, default `1`. Sampling temperature controlling
-#'   response randomness.
-#' @param top.p Numeric, default `1`. Top-p (nucleus) sampling parameter.
+#' @param temperature Numeric or `NULL`, default `NULL`. Sampling temperature
+#'   controlling response randomness. `NULL` uses the local model's (llama.cpp)
+#'   default.
+#' @param top.p Numeric or `NULL`, default `NULL`. Top-p (nucleus) sampling
+#'   parameter. `NULL` uses the local model's (llama.cpp) default.
 #' @param silently Logical, default `FALSE`. If `FALSE`, progress messages
 #'   are printed to the console. If `TRUE`, the function runs quietly.
 #'
@@ -3029,8 +3049,8 @@ local_chat <- function(prompts, model.path,
                        max.tokens = 1024,
                        system.role = NULL,
                        reps = 1,
-                       temperature = 1,
-                       top.p = 1,
+                       temperature = NULL,
+                       top.p = NULL,
                        silently = FALSE) {
 
   validation <- validate_local_chat_params(prompts, model.path,
@@ -3120,13 +3140,15 @@ local_chat <- function(prompts, model.path,
         )
 
         # Shared arguments minus the token parameter (resolved below)
-        base_args <- list(
-          prompt      = full_prompt,
-          temperature = temperature,
-          top_p       = top.p,
-          seed        = generation_seed,
-          echo        = FALSE,
-          stop        = list("User:", "System:")
+        # (sampling parameters are only passed if explicitly set)
+        base_args <- c(
+          list(
+            prompt = full_prompt,
+            seed   = generation_seed,
+            echo   = FALSE,
+            stop   = list("User:", "System:")
+          ),
+          sampling_args(temperature, top.p)
         )
 
         # Generate — retry with max_completion_tokens if model rejects max_tokens

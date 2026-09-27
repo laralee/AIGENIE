@@ -25,9 +25,9 @@ generate_items_via_local_llm(
 
 \item{model.path}{Path to local GGUF model file}
 
-\item{temperature}{Numeric. Sampling temperature}
+\item{temperature}{Numeric or NULL. Sampling temperature (NULL uses the llama.cpp default)}
 
-\item{top.p}{Numeric. Nucleus sampling parameter}
+\item{top.p}{Numeric or NULL. Nucleus sampling parameter (NULL uses the llama.cpp default)}
 
 \item{adaptive}{Logical. Use adaptive generation?}
 

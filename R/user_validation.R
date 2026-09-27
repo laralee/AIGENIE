@@ -19,8 +19,10 @@
 #' @param groq.API A string or NULL. Groq API key.
 #' @param model A string. The user-specified language model. Will be resolved to a
 #'   canonical model name using \code{normalize_model_name()}.
-#' @param temperature A numeric value between 0 and 2.
-#' @param top.p A numeric value between 0 and 1.
+#' @param temperature NULL or a numeric value between 0 and 2. A warning is issued
+#'   if set, since many models no longer accept it.
+#' @param top.p NULL or a numeric value between 0 and 1. A warning is issued if
+#'   set, since many models no longer accept it.
 #' @param embedding.model A string. An OpenAI, Jina AI, or HuggingFace embedding model;
 #'   validated via \code{embedding.model_validate()}.
 #' @param target.N Either a scalar integer, NULL, or a named list/vector of integers
@@ -156,9 +158,10 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
   target.N <- target.N_validate(target.N, item.attributes, items.only, embeddings.only, silently)
 
 
-  # Validate LLM parameters
+  # Validate LLM parameters (warn once if set, since many models reject them)
   top.p_validate(top.p)
   temperature_validate(temperature)
+  warn_sampling_params(temperature, top.p, model_info$provider)
 
   # Validate prompt components
   response.options_validate(response.options)
@@ -206,8 +209,8 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
 #' @param model.path Path to local GGUF model
 #' @param embedding.model Local embedding model identifier
 #' @param main.prompts Optional custom prompts
-#' @param temperature LLM temperature
-#' @param top.p LLM top-p sampling
+#' @param temperature LLM temperature (NULL uses the local model's default)
+#' @param top.p LLM top-p sampling (NULL uses the local model's default)
 #' @param target.N Target number of items
 #' @param domain Assessment domain
 #' @param scale.title Scale name
@@ -688,9 +691,10 @@ validate_chat_params <- function(prompts, model,
                                      anthropic.API = anthropic.API, silently = silently)
   model <- model_info$model
 
-  # Validate LLM parameters
+  # Validate LLM parameters (warn once if set, since many models reject them)
   temperature_validate(temperature)
   top.p_validate(top.p)
+  warn_sampling_params(temperature, top.p, model_info$provider)
 
   # Check that the tokens set is reasonable
   max.tokens <- max.tokens_validate(max.tokens, silently)

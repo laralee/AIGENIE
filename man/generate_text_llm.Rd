@@ -8,8 +8,8 @@ generate_text_llm(
   prompt,
   system.role = NULL,
   model = "gpt-4o",
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   max_tokens = 2048,
   openai.API = NULL,
   groq.API = NULL,
@@ -24,9 +24,9 @@ generate_text_llm(
 
 \item{model}{Character string specifying the model}
 
-\item{temperature}{Numeric. Sampling temperature (0-2)}
+\item{temperature}{Numeric or NULL. Sampling temperature (0-2). Not sent when NULL.}
 
-\item{top.p}{Numeric. Nucleus sampling parameter (0-1)}
+\item{top.p}{Numeric or NULL. Nucleus sampling parameter (0-1). Not sent when NULL.}
 
 \item{max_tokens}{Integer. Maximum tokens to generate}
 
@@ -39,7 +39,9 @@ generate_text_llm(
 \item{hf.token}{Optional HuggingFace token}
 }
 \value{
-Character string with the generated text
+Character string with the generated text. If the provider returns an
+error that mentions \code{temperature} or \code{top_p}, the error message is extended
+with a hint to leave these parameters as NULL.
 }
 \description{
 Unified interface for text generation that automatically routes to the

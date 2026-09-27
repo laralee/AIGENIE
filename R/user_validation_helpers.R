@@ -1274,11 +1274,14 @@ target.N_validate <- function(target.N, items.attributes, items.only, embeddings
 # Validate LLM parameters ----
 #' Validate `temperature` for Text Generation
 #'
-#' Ensures `temperature` is a numeric value between 0 and 2
+#' Ensures `temperature` is NULL (not sent to the model) or a numeric value
+#' between 0 and 2
 #'
-#' @param temperature A numeric value
+#' @param temperature A numeric value or NULL
 #' @keywords internal
 temperature_validate <- function(temperature) {
+  if (is.null(temperature)) return(invisible(NULL))
+
   if (!is.numeric(temperature) || length(temperature) != 1 || is.na(temperature)) {
     stop("AI-GENIE expects temperature to be a numeric value or NULL.", call. = FALSE)
   }
@@ -1290,12 +1293,15 @@ temperature_validate <- function(temperature) {
 
 #' Validate `top.p` for Text Generation
 #'
-#' Ensures `top.p` is a numeric value between 0 and 1.
+#' Ensures `top.p` is NULL (not sent to the model) or a numeric value between
+#' 0 and 1.
 #'
-#' @param top.p A numeric value
+#' @param top.p A numeric value or NULL
 #'
 #' @keywords internal
 top.p_validate <- function(top.p) {
+
+  if (is.null(top.p)) return(invisible(NULL))
 
   if (!is.numeric(top.p) || length(top.p) != 1 || is.na(top.p)) {
     stop("AI-GENIE expects top.p to be a numeric value or NULL.", call. = FALSE)

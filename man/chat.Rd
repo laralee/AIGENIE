@@ -13,8 +13,8 @@ chat(
   groq.API = NULL,
   anthropic.API = NULL,
   reps = 1,
-  top.p = 1,
-  temperature = 1,
+  top.p = NULL,
+  temperature = NULL,
   max.tokens = 2048L,
   silently = FALSE
 )
@@ -49,10 +49,14 @@ Anthropic API key (required when using an Anthropic model).}
 \item{reps}{Integer, default \code{1}. The number of times each prompt will be
 given to the model.}
 
-\item{top.p}{Numeric, default \code{1}. Top-p (nucleus) sampling parameter.}
+\item{top.p}{Numeric or \code{NULL}, default \code{NULL}. Top-p (nucleus) sampling
+parameter. When \code{NULL}, it is not sent and the model's default is used.
+A warning is issued if set, since many models no longer accept it.}
 
-\item{temperature}{Numeric, default \code{1}. Sampling temperature controlling
-response randomness.}
+\item{temperature}{Numeric or \code{NULL}, default \code{NULL}. Sampling temperature
+controlling response randomness. When \code{NULL}, it is not sent and the model's
+default is used. A warning is issued if set, since many models no longer
+accept it.}
 
 \item{max.tokens}{Integer, default \code{2048L}. Maximum number of tokens
 requested from the model.}
@@ -78,6 +82,8 @@ API key for at least one provider is required. To use a local model
 \details{
 The function includes a retry mechanism (up to 5 attempts) for transient API
 failures. If all attempts fail, the function stops with an informative error.
+Errors that mention \code{temperature} or \code{top_p} are not retried, since the model
+is likely rejecting those parameters.
 }
 \section{Important}{
 

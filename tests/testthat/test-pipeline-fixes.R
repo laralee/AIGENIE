@@ -17,7 +17,7 @@ test_that("validate_user_input_AIGENIE forwards a user-supplied EGA.model", {
       item.attributes = test_attributes, openai.API = "fake-key-for-test",
       hf.token = NULL, main.prompts = NULL, groq.API = NULL,
       anthropic.API = NULL, jina.API = NULL, model = "gpt4o",
-      temperature = 1, top.p = 1, embedding.model = "text-embedding-3-small",
+      temperature = NULL, top.p = NULL, embedding.model = "text-embedding-3-small",
       target.N = NULL, domain = NULL, scale.title = NULL, item.examples = NULL,
       audience = NULL, item.type.definitions = NULL, response.options = NULL,
       prompt.notes = NULL, system.role = NULL, EGA.model = EGA.model,

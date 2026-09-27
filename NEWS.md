@@ -4,6 +4,19 @@
 - Added `item.attribute.definitions` to `AIGENIE()` and `local_AIGENIE()`: an
   optional named list of definitions for some or all attributes, inserted into
   the generation prompt immediately after each item type's attribute list.
+
+## Breaking changes
+- `temperature` and `top.p` now default to `NULL` in `AIGENIE()`,
+  `local_AIGENIE()`, `chat()`, and `local_chat()`. When `NULL`, they are not
+  sent to the model, so the provider's (or llama.cpp's) own defaults apply.
+  Many recent models reject these parameters. API calls with the new defaults
+  sample as before for models that accept them (providers default both to 1);
+  local models now use llama.cpp's defaults instead of 1.
+- Setting `temperature` or `top.p` for an API model now issues a warning, plus
+  a separate warning when both are set for an Anthropic model.
+- API errors that mention `temperature` or `top_p` now include a hint to leave
+  them as `NULL`, and item generation and `chat()` stop on the first such error
+  instead of retrying.
 - Exposed `boot.iter` and `ncores` in `AIGENIE()`, `GENIE()`, `local_AIGENIE()`, and `local_GENIE()`. The `boot.iter` default remains 500, matching the current reduction pipeline; `ncores = NULL` preserves EGAnet's existing default core behavior.
 - Added a publication-ready `filtering_audit` with item-level filtering
   provenance for UVA and bootEGA decisions.

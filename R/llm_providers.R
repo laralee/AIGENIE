@@ -190,6 +190,88 @@ detect_llm_provider <- function(model, groq.API = NULL, openai.API = NULL,
 }
 
 # ============================================================================
+# Sampling Parameter Helpers
+# ============================================================================
+
+#' Build Optional Sampling Arguments for an LLM Request
+#'
+#' @description
+#' Many recent models reject `temperature` and/or `top_p`, so these are only
+#' sent when explicitly set. Returns the API-style arguments for the values
+#' that are not `NULL`.
+#'
+#' @param temperature Numeric or NULL. Sampling temperature.
+#' @param top.p Numeric or NULL. Nucleus sampling parameter.
+#'
+#' @return A named list containing `temperature` and/or `top_p` for the
+#'   non-`NULL` inputs (an empty list if both are `NULL`).
+#' @keywords internal
+sampling_args <- function(temperature = NULL, top.p = NULL) {
+  args <- list()
+  if (!is.null(temperature)) args$temperature <- temperature
+  if (!is.null(top.p)) args$top_p <- top.p
+  args
+}
+
+#' Detect Errors Caused by Unsupported Sampling Parameters
+#'
+#' @param message Character string. An error message.
+#'
+#' @return Logical. `TRUE` if the message mentions `temperature` or `top_p`
+#'   (also matching "top p" and "top.p").
+#' @keywords internal
+is_sampling_param_error <- function(message) {
+  grepl("temperature|top[ _.]p", message, ignore.case = TRUE)
+}
+
+# Hint appended to API errors that mention a sampling parameter
+.sampling_param_hint <- paste0(
+  "This model may not accept `temperature` or `top.p`. ",
+  "Try leaving them as NULL (the default)."
+)
+
+#' Warn When Sampling Parameters Are Set for an API Model
+#'
+#' @description
+#' Called once during input validation. Warns that many models no longer
+#' accept `temperature` / `top.p`, and separately warns when both are set for an
+#' Anthropic model, since recent Claude models reject requests that set both.
+#'
+#' @param temperature Numeric or NULL. Sampling temperature.
+#' @param top.p Numeric or NULL. Nucleus sampling parameter.
+#' @param provider Character. The detected provider (e.g., "openai", "anthropic").
+#'
+#' @return `NULL`, invisibly. Called for its warnings.
+#' @keywords internal
+warn_sampling_params <- function(temperature, top.p, provider) {
+
+  set_params <- c("temperature", "top.p")[c(!is.null(temperature), !is.null(top.p))]
+
+  if (length(set_params) > 0) {
+    warning(
+      paste0(
+        "You set ", paste(sprintf("`%s`", set_params), collapse = " and "), ". ",
+        "Many models no longer accept `temperature` or `top.p` and will return an ",
+        "API error if they are sent. Only set these if you know the model accepts them."
+      ),
+      call. = FALSE
+    )
+  }
+
+  if (identical(provider, "anthropic") && length(set_params) == 2) {
+    warning(
+      paste0(
+        "Recent Anthropic models do not accept `temperature` and `top.p` in the same ",
+        "request. Consider setting only one of them."
+      ),
+      call. = FALSE
+    )
+  }
+
+  invisible(NULL)
+}
+
+# ============================================================================
 # Unified Text Generation Interface
 # ============================================================================
 
@@ -202,21 +284,23 @@ detect_llm_provider <- function(model, groq.API = NULL, openai.API = NULL,
 #' @param prompt Character string with the user prompt
 #' @param system.role Character string with the system prompt
 #' @param model Character string specifying the model
-#' @param temperature Numeric. Sampling temperature (0-2)
-#' @param top.p Numeric. Nucleus sampling parameter (0-1)
+#' @param temperature Numeric or NULL. Sampling temperature (0-2). Not sent when NULL.
+#' @param top.p Numeric or NULL. Nucleus sampling parameter (0-1). Not sent when NULL.
 #' @param max_tokens Integer. Maximum tokens to generate
 #' @param openai.API Optional OpenAI API key
 #' @param groq.API Optional Groq API key
 #' @param anthropic.API Optional Anthropic API key
 #' @param hf.token Optional HuggingFace token
 #'
-#' @return Character string with the generated text
+#' @return Character string with the generated text. If the provider returns an
+#'   error that mentions `temperature` or `top_p`, the error message is extended
+#'   with a hint to leave these parameters as NULL.
 #' @keywords internal
 generate_text_llm <- function(prompt,
                               system.role = NULL,
                               model = "gpt-4o",
-                              temperature = 1,
-                              top.p = 1,
+                              temperature = NULL,
+                              top.p = NULL,
                               max_tokens = 2048,
                               openai.API = NULL,
                               groq.API = NULL,
@@ -230,16 +314,26 @@ generate_text_llm <- function(prompt,
 
   # Helper: calls `fn` with max_tokens first; if the API rejects that parameter
   # and suggests max_completion_tokens, retries automatically with that instead.
+  # Errors that mention a sampling parameter get a hint pointing to the likely fix.
   call_with_token_fallback <- function(fn, ...) {
     tryCatch(
-      fn(..., max_tokens = max_tokens),
-      error = function(e) {
-        if (grepl("max_tokens", conditionMessage(e), fixed = TRUE) &&
-            grepl("max_completion_tokens", conditionMessage(e), fixed = TRUE)) {
-          fn(..., max_completion_tokens = max_tokens)
-        } else {
-          stop(e)
+      tryCatch(
+        fn(..., max_tokens = max_tokens),
+        error = function(e) {
+          if (grepl("max_tokens", conditionMessage(e), fixed = TRUE) &&
+              grepl("max_completion_tokens", conditionMessage(e), fixed = TRUE)) {
+            fn(..., max_completion_tokens = max_tokens)
+          } else {
+            stop(e)
+          }
         }
+      ),
+      error = function(e) {
+        msg <- conditionMessage(e)
+        if (is_sampling_param_error(msg)) {
+          stop(paste0(msg, "\n", .sampling_param_hint), call. = FALSE)
+        }
+        stop(e)
       }
     )
   }
@@ -299,15 +393,15 @@ generate_text_llm <- function(prompt,
 #' @param prompt Character string with the user prompt
 #' @param system.role Character string with the system prompt
 #' @param model Character string specifying the model
-#' @param temperature Numeric. Sampling temperature
-#' @param top.p Numeric. Nucleus sampling parameter
+#' @param temperature Numeric or NULL. Sampling temperature (not sent when NULL)
+#' @param top.p Numeric or NULL. Nucleus sampling parameter (not sent when NULL)
 #' @param max_tokens Integer. Maximum tokens to generate
 #' @param api_key OpenAI API key
 #'
 #' @return Character string with the generated text
 #' @keywords internal
 generate_text_openai <- function(prompt, system.role = NULL, model = "gpt-4o",
-                                 temperature = 1, top.p = 1, max_tokens = 2048,
+                                 temperature = NULL, top.p = NULL, max_tokens = 2048,
                                  api_key) {
 
   ensure_aigenie_python()
@@ -322,12 +416,11 @@ generate_text_openai <- function(prompt, system.role = NULL, model = "gpt-4o",
   }
   messages[[length(messages) + 1]] <- list(role = "user", content = prompt)
 
-  # Shared arguments minus the token parameter (resolved below)
-  base_args <- list(
-    model       = model,
-    messages    = messages,
-    temperature = temperature,
-    top_p       = top.p
+  # Shared arguments minus the token parameter (resolved below);
+  # sampling parameters are included only if explicitly set
+  base_args <- c(
+    list(model = model, messages = messages),
+    sampling_args(temperature, top.p)
   )
 
   # Create completion — retry with max_completion_tokens if model rejects max_tokens
@@ -357,15 +450,15 @@ generate_text_openai <- function(prompt, system.role = NULL, model = "gpt-4o",
 #' @param prompt Character string with the user prompt
 #' @param system.role Character string with the system prompt
 #' @param model Character string specifying the model
-#' @param temperature Numeric. Sampling temperature
-#' @param top.p Numeric. Nucleus sampling parameter
+#' @param temperature Numeric or NULL. Sampling temperature (not sent when NULL)
+#' @param top.p Numeric or NULL. Nucleus sampling parameter (not sent when NULL)
 #' @param max_tokens Integer. Maximum tokens to generate
 #' @param api_key Groq API key
 #'
 #' @return Character string with the generated text
 #' @keywords internal
 generate_text_groq <- function(prompt, system.role = NULL, model = "llama-3.3-70b-versatile",
-                               temperature = 1, top.p = 1, max_tokens = 2048,
+                               temperature = NULL, top.p = NULL, max_tokens = 2048,
                                api_key) {
 
   ensure_aigenie_python()
@@ -380,12 +473,11 @@ generate_text_groq <- function(prompt, system.role = NULL, model = "llama-3.3-70
   }
   messages[[length(messages) + 1]] <- list(role = "user", content = prompt)
 
-  # Shared arguments minus the token parameter (resolved below)
-  base_args <- list(
-    model       = model,
-    messages    = messages,
-    temperature = temperature,
-    top_p       = top.p
+  # Shared arguments minus the token parameter (resolved below);
+  # sampling parameters are included only if explicitly set
+  base_args <- c(
+    list(model = model, messages = messages),
+    sampling_args(temperature, top.p)
   )
 
   # Create completion — retry with max_completion_tokens if model rejects max_tokens
@@ -419,8 +511,8 @@ generate_text_groq <- function(prompt, system.role = NULL, model = "llama-3.3-70
 #' @param prompt Character string with the user prompt
 #' @param system.role Character string with the system prompt
 #' @param model Character string specifying the Claude model
-#' @param temperature Numeric. Sampling temperature (0-1)
-#' @param top.p Numeric. Nucleus sampling parameter (0-1)
+#' @param temperature Numeric or NULL. Sampling temperature (0-1; not sent when NULL)
+#' @param top.p Numeric or NULL. Nucleus sampling parameter (0-1; not sent when NULL)
 #' @param max_tokens Integer. Maximum tokens to generate
 #' @param api_key Anthropic API key
 #'
@@ -428,7 +520,7 @@ generate_text_groq <- function(prompt, system.role = NULL, model = "llama-3.3-70
 #' @keywords internal
 generate_text_anthropic <- function(prompt, system.role = NULL,
                                     model = "claude-sonnet-4-5-20250929",
-                                    temperature = 1, top.p = 1,
+                                    temperature = NULL, top.p = NULL,
                                     max_tokens = 2048, api_key) {
 
   ensure_aigenie_python()
@@ -460,13 +552,8 @@ generate_text_anthropic <- function(prompt, system.role = NULL,
     body$system <- system.role
   }
 
-  # Add sampling parameters
-  if (temperature != 1) {
-    body$temperature <- temperature
-  }
-  if (top.p != 1) {
-    body$top_p <- top.p
-  }
+  # Add sampling parameters only if explicitly set
+  body <- c(body, sampling_args(temperature, top.p))
 
   # Serialize to JSON via Python for proper list-of-lists handling
   body_json <- json_mod$dumps(body)
@@ -509,15 +596,15 @@ generate_text_anthropic <- function(prompt, system.role = NULL,
 #' @param prompt Character string with the user prompt
 #' @param system.role Character string with the system prompt
 #' @param model Character string specifying the HuggingFace model ID
-#' @param temperature Numeric. Sampling temperature
-#' @param top.p Numeric. Nucleus sampling parameter
+#' @param temperature Numeric or NULL. Sampling temperature (not sent when NULL)
+#' @param top.p Numeric or NULL. Nucleus sampling parameter (not sent when NULL)
 #' @param max_tokens Integer. Maximum tokens to generate
 #' @param hf_token Optional HuggingFace token
 #'
 #' @return Character string with the generated text
 #' @keywords internal
 generate_text_huggingface <- function(prompt, system.role = NULL, model,
-                                      temperature = 1, top.p = 1, max_tokens = 2048,
+                                      temperature = NULL, top.p = NULL, max_tokens = 2048,
                                       hf_token = NULL) {
 
   ensure_aigenie_python()
@@ -544,11 +631,12 @@ generate_text_huggingface <- function(prompt, system.role = NULL, model,
   # Build payload
   payload <- list(
     inputs = full_prompt,
-    parameters = list(
-      temperature = temperature,
-      top_p = top.p,
-      max_new_tokens = as.integer(max_tokens),
-      return_full_text = FALSE
+    parameters = c(
+      sampling_args(temperature, top.p),
+      list(
+        max_new_tokens = as.integer(max_tokens),
+        return_full_text = FALSE
+      )
     )
   )
 

@@ -12,8 +12,8 @@ local_chat(
   max.tokens = 1024,
   system.role = NULL,
   reps = 1,
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   silently = FALSE
 )
 }
@@ -44,10 +44,12 @@ the prompts.}
 \item{reps}{Integer, default \code{1}. The number of times each prompt will be
 given to the model (independent generations).}
 
-\item{temperature}{Numeric, default \code{1}. Sampling temperature controlling
-response randomness.}
+\item{temperature}{Numeric or \code{NULL}, default \code{NULL}. Sampling temperature
+controlling response randomness. \code{NULL} uses the local model's (llama.cpp)
+default.}
 
-\item{top.p}{Numeric, default \code{1}. Top-p (nucleus) sampling parameter.}
+\item{top.p}{Numeric or \code{NULL}, default \code{NULL}. Top-p (nucleus) sampling
+parameter. \code{NULL} uses the local model's (llama.cpp) default.}
 
 \item{silently}{Logical, default \code{FALSE}. If \code{FALSE}, progress messages
 are printed to the console. If \code{TRUE}, the function runs quietly.}

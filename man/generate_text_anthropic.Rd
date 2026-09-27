@@ -8,8 +8,8 @@ generate_text_anthropic(
   prompt,
   system.role = NULL,
   model = "claude-sonnet-4-5-20250929",
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   max_tokens = 2048,
   api_key
 )
@@ -21,9 +21,9 @@ generate_text_anthropic(
 
 \item{model}{Character string specifying the Claude model}
 
-\item{temperature}{Numeric. Sampling temperature (0-1)}
+\item{temperature}{Numeric or NULL. Sampling temperature (0-1; not sent when NULL)}
 
-\item{top.p}{Numeric. Nucleus sampling parameter (0-1)}
+\item{top.p}{Numeric or NULL. Nucleus sampling parameter (0-1; not sent when NULL)}
 
 \item{max_tokens}{Integer. Maximum tokens to generate}
 

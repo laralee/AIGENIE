@@ -60,9 +60,11 @@ used.}
 \item{model}{A string. The user-specified language model. Will be resolved to a
 canonical model name using \code{normalize_model_name()}.}
 
-\item{temperature}{A numeric value between 0 and 2.}
+\item{temperature}{NULL or a numeric value between 0 and 2. A warning is issued
+if set, since many models no longer accept it.}
 
-\item{top.p}{A numeric value between 0 and 1.}
+\item{top.p}{NULL or a numeric value between 0 and 1. A warning is issued if
+set, since many models no longer accept it.}
 
 \item{embedding.model}{A string. An OpenAI, Jina AI, or HuggingFace embedding model;
 validated via \code{embedding.model_validate()}.}

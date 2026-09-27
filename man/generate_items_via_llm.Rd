@@ -25,9 +25,9 @@ generate_items_via_llm(
 
 \item{model}{Character string specifying the model}
 
-\item{top.p}{Numeric. Nucleus sampling parameter}
+\item{top.p}{Numeric or NULL. Nucleus sampling parameter (not sent when NULL)}
 
-\item{temperature}{Numeric. Sampling temperature}
+\item{temperature}{Numeric or NULL. Sampling temperature (not sent when NULL)}
 
 \item{adaptive}{Logical. Use adaptive generation with previous items?}
 
@@ -42,7 +42,9 @@ generate_items_via_llm(
 \item{target.N}{Named list of target item counts per type}
 }
 \value{
-A list with 'items' data frame and 'successful' flag
+A list with 'items' data frame and 'successful' flag. Generation stops
+with an error on the first API error that mentions \code{temperature} or \code{top_p},
+since retrying such a request cannot succeed.
 }
 \description{
 Generates scale items using the specified LLM provider. Supports OpenAI,

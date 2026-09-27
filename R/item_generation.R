@@ -18,8 +18,8 @@
 #' @param main.prompts Named list of prompts for each item type
 #' @param system.role Character string defining the system role
 #' @param model Character string specifying the model
-#' @param top.p Numeric. Nucleus sampling parameter
-#' @param temperature Numeric. Sampling temperature
+#' @param top.p Numeric or NULL. Nucleus sampling parameter (not sent when NULL)
+#' @param temperature Numeric or NULL. Sampling temperature (not sent when NULL)
 #' @param adaptive Logical. Use adaptive generation with previous items?
 #' @param silently Logical. Suppress progress messages?
 #' @param groq.API Optional Groq API key
@@ -27,7 +27,9 @@
 #' @param anthropic.API Optional Anthropic API key
 #' @param target.N Named list of target item counts per type
 #'
-#' @return A list with 'items' data frame and 'successful' flag
+#' @return A list with 'items' data frame and 'successful' flag. Generation stops
+#'   with an error on the first API error that mentions `temperature` or `top_p`,
+#'   since retrying such a request cannot succeed.
 #' @keywords internal
 generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temperature,
                                    adaptive, silently, groq.API, openai.API,
@@ -121,6 +123,10 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
           anthropic.API = anthropic.API
         )
       }, error = function(e) {
+        # Rejected sampling parameters will fail on every retry: stop right away
+        if (is_sampling_param_error(conditionMessage(e))) {
+          stop("Item generation stopped: ", conditionMessage(e), call. = FALSE)
+        }
         if (!silently) cat("Generation error:", conditionMessage(e), "\n")
         NULL
       })
@@ -201,8 +207,8 @@ generate_items_via_llm <- function(main.prompts, system.role, model, top.p, temp
 #' @param main.prompts Named list of prompts
 #' @param system.role Character string with system role
 #' @param model.path Path to local GGUF model file
-#' @param temperature Numeric. Sampling temperature
-#' @param top.p Numeric. Nucleus sampling parameter
+#' @param temperature Numeric or NULL. Sampling temperature (NULL uses the llama.cpp default)
+#' @param top.p Numeric or NULL. Nucleus sampling parameter (NULL uses the llama.cpp default)
 #' @param adaptive Logical. Use adaptive generation?
 #' @param silently Logical. Suppress messages?
 #' @param target.N Named list of target counts
@@ -309,15 +315,15 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
 
       # Generate -- first attempt with 'max_tokens'; if the model requires
       # 'max_completion_tokens' instead, catch that specific error and retry.
+      # Sampling parameters are only passed if explicitly set
+      base_args <- c(
+        list(prompt = full_prompt, echo = FALSE, stop = list("User:", "System:")),
+        sampling_args(temperature, top.p)
+      )
+
       raw_text <- tryCatch({
-        response <- llm(
-          prompt = full_prompt,
-          max_tokens = as.integer(max.tokens),
-          temperature = temperature,
-          top_p = top.p,
-          echo = FALSE,
-          stop = list("User:", "System:")
-        )
+        response <- do.call(llm, c(base_args,
+                                   list(max_tokens = as.integer(max.tokens))))
         response[["choices"]][[1]][["text"]]
       }, error = function(e) {
         # Some models require 'max_completion_tokens' instead of 'max_tokens'
@@ -325,14 +331,8 @@ generate_items_via_local_llm <- function(main.prompts, system.role, model.path,
             grepl("max_completion_tokens", conditionMessage(e), fixed = TRUE)) {
           if (!silently) cat("Retrying with 'max_completion_tokens' parameter...\n")
           tryCatch({
-            response <- llm(
-              prompt = full_prompt,
-              max_completion_tokens = as.integer(max.tokens),
-              temperature = temperature,
-              top_p = top.p,
-              echo = FALSE,
-              stop = list("User:", "System:")
-            )
+            response <- do.call(llm, c(base_args,
+                                       list(max_completion_tokens = as.integer(max.tokens))))
             response[["choices"]][[1]][["text"]]
           }, error = function(e2) {
             if (!silently) cat("Generation error:", conditionMessage(e2), "\n")

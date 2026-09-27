@@ -8,8 +8,8 @@ generate_text_huggingface(
   prompt,
   system.role = NULL,
   model,
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   max_tokens = 2048,
   hf_token = NULL
 )
@@ -21,9 +21,9 @@ generate_text_huggingface(
 
 \item{model}{Character string specifying the HuggingFace model ID}
 
-\item{temperature}{Numeric. Sampling temperature}
+\item{temperature}{Numeric or NULL. Sampling temperature (not sent when NULL)}
 
-\item{top.p}{Numeric. Nucleus sampling parameter}
+\item{top.p}{Numeric or NULL. Nucleus sampling parameter (not sent when NULL)}
 
 \item{max_tokens}{Integer. Maximum tokens to generate}
 

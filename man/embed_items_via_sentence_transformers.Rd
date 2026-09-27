@@ -11,6 +11,18 @@ embed_items_via_sentence_transformers(
   silently = FALSE
 )
 }
+\arguments{
+\item{embedding.model}{HuggingFace / sentence-transformers model name}
+
+\item{items}{Data frame with 'statement' and 'ID' columns}
+
+\item{hf.token}{Optional HuggingFace API token (used to log in for gated models)}
+
+\item{silently}{Logical. Suppress progress messages?}
+}
+\value{
+A list with 'embeddings' matrix and 'success' flag
+}
 \description{
 Embed Items Using Sentence-Transformers Library
 }

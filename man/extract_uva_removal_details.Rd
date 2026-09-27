@@ -13,6 +13,24 @@ extract_uva_removal_details(
   cut.off
 )
 }
+\arguments{
+\item{uva_object}{An \code{EGAnet::UVA} result for the current sweep.}
+
+\item{removed_ids}{Character vector of item IDs removed in this sweep.}
+
+\item{remaining_ids}{Character vector of item IDs retained after this sweep.}
+
+\item{items}{Data frame with \code{ID} and \code{statement} columns.}
+
+\item{sweep}{Integer. The UVA sweep number.}
+
+\item{cut.off}{Numeric. The wTO threshold used by UVA.}
+}
+\value{
+A data frame with one row per removed item: \code{ID}, \code{uva_sweep},
+\code{redundant_with_ID}, \code{redundant_with_statement}, \code{wTO},
+\code{all_redundant_with_IDs}, and \code{all_redundant_wTO}.
+}
 \description{
 Creates one row per item removed by UVA, retaining the strongest
 redundant relationship as the primary diagnostic and all redundant

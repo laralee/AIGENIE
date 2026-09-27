@@ -2,7 +2,7 @@
 % Please edit documentation in R/user_validation_helpers.R
 \name{target.N_validate}
 \alias{target.N_validate}
-\title{Validate and Expand \code{target.N} for Each Item Attribute}
+\title{Validate and Expand \code{target.N} for Each Item Type}
 \usage{
 target.N_validate(
   target.N,
@@ -15,7 +15,7 @@ target.N_validate(
 \arguments{
 \item{target.N}{An integer, list/vector of integers, or NULL.}
 
-\item{items.attributes}{A cleaned list returned from \code{validate_items.attributes()}.}
+\item{items.attributes}{A cleaned list returned from \code{items.attributes_validate()}.}
 
 \item{items.only}{A flag used to determine if only items need to be generated}
 
@@ -24,13 +24,18 @@ target.N_validate(
 \item{silently}{A flag used to determine if warnings should be printed}
 }
 \value{
-A list of integers, one per attribute (named).
+A named list of integers, one per item type.
 }
 \description{
 Ensures that \code{target.N} is either:
 \itemize{
-\item NULL -> defaults to 60 per attribute
-\item A single integer -> repeated for each attribute
-\item A list/vector of integers -> must match number of attributes
+\item NULL -> defaults to 60 per item type
+\item A single integer -> repeated for each item type
+\item A named list/vector of integers -> names must match the item types
 }
 }
+\details{
+Warns when fewer than 15 items per attribute would be generated (unless
+only items or embeddings are requested).
+}
+\keyword{internal}

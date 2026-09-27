@@ -2,7 +2,7 @@
 % Please edit documentation in R/user_validation_helpers.R
 \name{run_flags_validate}
 \alias{run_flags_validate}
-\title{Check that the \code{run.overall} and \code{all.together} flags are logically consistent with the number of item types.}
+\title{Validate the \code{run.overall} and \code{all.together} Flags}
 \usage{
 run_flags_validate(run.overall, all.together, item.attributes, silently)
 }
@@ -21,3 +21,4 @@ a named list with the updated \code{all.together} and \code{run.overall} flags
 \description{
 Check that the \code{run.overall} and \code{all.together} flags are logically consistent with the number of item types.
 }
+\keyword{internal}

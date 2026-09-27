@@ -45,8 +45,11 @@ run_item_reduction_pipeline(
 \item{plot}{Logical. Whether to plot the network plots at the end}
 }
 \value{
-A named list of pipeline results, one per item type
+A list with \code{item_level} (a named list of pipeline results, one per
+item type; \code{NULL} for any type whose pipeline errored) and \code{success}
+(logical; \code{FALSE} if any item type failed).
 }
 \description{
 Run reduction pipeline for all item types
 }
+\keyword{internal}

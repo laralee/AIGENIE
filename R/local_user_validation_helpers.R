@@ -5,6 +5,7 @@
 #'
 #' @return The expanded, validated path
 #'
+#' @keywords internal
 validate_model.path <- function(model.path, silently = FALSE) {
 
   # Check if provided
@@ -53,6 +54,7 @@ validate_model.path <- function(model.path, silently = FALSE) {
 #'
 #' @return The validated model identifier or path
 #'
+#' @keywords internal
 validate_local_embedding_model <- function(embedding.model, silently = FALSE) {
 
   # Check basic type requirements
@@ -191,6 +193,7 @@ validate_local_embedding_model <- function(embedding.model, silently = FALSE) {
 #'
 #' @return A list of validated parameters
 #'
+#' @keywords internal
 validate_local_llm_params <- function(n.ctx, n.gpu.layers, max.tokens) {
 
   # Validate n.ctx (context window)
@@ -255,6 +258,7 @@ validate_local_llm_params <- function(n.ctx, n.gpu.layers, max.tokens) {
 #'
 #' @return A list of validated parameters
 #'
+#' @keywords internal
 validate_local_embedding_params <- function(device, batch.size, pooling.strategy, max.length) {
 
   # Validate device

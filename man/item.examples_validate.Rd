@@ -10,7 +10,7 @@ item.examples_validate(item.examples, items.attributes)
 \item{item.examples}{A data frame with columns \code{type}, \code{attribute}, \code{statement}.
 All values must be non-empty strings.}
 
-\item{items.attributes}{A cleaned list from \code{validate_items.attributes()}.
+\item{items.attributes}{A cleaned list from \code{items.attributes_validate()}.
 All names and values must be normalized (lowercased and trimmed).}
 }
 \value{
@@ -25,3 +25,4 @@ Returns a cleaned version of the data frame with normalized values:
 \item \code{statement} is trimmed (case preserved)
 }
 }
+\keyword{internal}

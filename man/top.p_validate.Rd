@@ -10,5 +10,6 @@ top.p_validate(top.p)
 \item{top.p}{A numeric value}
 }
 \description{
-Ensures \code{top.p} is a numeric value between 0 and 1, or NULL.
+Ensures \code{top.p} is a numeric value between 0 and 1.
 }
+\keyword{internal}

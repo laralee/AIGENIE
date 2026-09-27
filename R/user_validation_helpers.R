@@ -8,6 +8,7 @@
 #'
 #' @param ... One or more variables to check. We are expecting each to be a logical scalar (`TRUE` or `FALSE`). In `AIGENIE`, these variables would be `items.only`, `adaptive`, `plot`, `keep.org`, `silently`, and `embeddings.only`.
 #'
+#' @keywords internal
 validate_booleans <- function(...) {
   args <- list(...)
   calls <- as.list(match.call(expand.dots = FALSE)$...)
@@ -42,6 +43,7 @@ validate_booleans <- function(...) {
 #'
 #' @param ... One or more variables to validate.
 #'
+#' @keywords internal
 validate_strings <- function(...) {
   args <- list(...)
   calls <- as.list(match.call(expand.dots = FALSE)$...)
@@ -72,15 +74,17 @@ validate_strings <- function(...) {
 #'
 #' Validates that `items.attributes` is a **named list** whose names are
 #' truly unique after trimming whitespace and ignoring case, and that each
-#' element is itself a list **containing only strings**, with **at least two**
+#' element is a character vector (or a list of strings) with **at least two**
 #' truly unique strings (same trimming + case-insensitive rule).
 #'
-#' @param items.attributes A named list. Each element must be a list containing
-#'   only character scalars (strings). Each of those inner lists must contain
-#'   at least two truly unique strings after trimming and case-folding.
-#' @return A cleaned version of `items.attributes` with normalized names and
-#'   values. Errors are thrown if validation fails.
+#' @param items.attributes A named list. Each element must be a character vector
+#'   or a list containing only character scalars (strings), with at least two
+#'   truly unique strings after trimming and case-folding.
+#' @return A cleaned version of `items.attributes` with normalized (trimmed,
+#'   lowercased) names, where each element is a character vector of unique,
+#'   normalized attributes. Errors are thrown if validation fails.
 #'
+#' @keywords internal
 items.attributes_validate <- function(items.attributes) {
   norm_str <- function(x) trimws(tolower(x))
 
@@ -228,11 +232,12 @@ items.attributes_validate <- function(items.attributes) {
 #'
 #' @param item.examples A data frame with columns `type`, `attribute`, `statement`.
 #'   All values must be non-empty strings.
-#' @param items.attributes A cleaned list from `validate_items.attributes()`.
+#' @param items.attributes A cleaned list from `items.attributes_validate()`.
 #'   All names and values must be normalized (lowercased and trimmed).
 #'
 #' @return A cleaned version of `item.examples` with normalized values.
 #'
+#' @keywords internal
 item.examples_validate <- function(item.examples, items.attributes) {
   norm_str <- function(x) trimws(tolower(x))
   trim_str <- function(x) trimws(x)
@@ -359,9 +364,10 @@ item.examples_validate <- function(item.examples, items.attributes) {
 #' @param item.type.definitions A named list of strings, where each name must
 #'   correspond to a name in `items.attributes` and each value must be a
 #'   non-empty string.
-#' @param items.attributes A cleaned list from `validate_items.attributes()`.
+#' @param items.attributes A cleaned list from `items.attributes_validate()`.
 #'
 #' @return A cleaned version of `item.type.definitions`.
+#' @keywords internal
 item.type.definitions_validate <- function(item.type.definitions, items.attributes) {
   norm_str <- function(x) trimws(tolower(x))
   trim_str <- function(x) trimws(x)
@@ -460,9 +466,11 @@ item.type.definitions_validate <- function(item.type.definitions, items.attribut
 #' original input is returned.
 #'
 #' @param model A single string, the user-supplied model name.
-#' @param silently A flag to determine if warnings should be printed to the screen.
+#' @param silently Currently unused.
 #'
-#' @return A standardized model name.
+#' @return A standardized model name. Known aliases are returned with a provider
+#'   prefix (e.g., `"OpenAI/gpt-4o"`); other inputs are returned trimmed.
+#' @keywords internal
 resolve_model_name <- function(model, silently) {
   if (is.null(model) || !is.character(model) || length(model) != 1 || is.na(model)) {
     stop("AI-GENIE expects `model` to be a non-empty string.", call. = FALSE)
@@ -531,10 +539,13 @@ resolve_model_name <- function(model, silently) {
 #' @param model Character string of the model name
 #' @param groq.API Optional Groq API key
 #' @param openai.API Optional OpenAI API key
-#' @param silently Logical, suppress warnings
+#' @param anthropic.API Optional Anthropic API key
+#' @param silently Logical, suppress messages and warnings
 #'
-#' @return List with normalized model name and detected provider
+#' @return List with `model` (the normalized, provider-prefixed model name) and
+#'   `provider` (`"openai"`, `"groq"`, or `"anthropic"`)
 #'
+#' @keywords internal
 normalize_model_name <- function(model, groq.API = NULL, openai.API = NULL,
                                   anthropic.API = NULL, silently = FALSE) {
 
@@ -686,13 +697,22 @@ normalize_model_name <- function(model, groq.API = NULL, openai.API = NULL,
 #'   - jina-code-embeddings-1.5b, jina-code-embeddings-0.5b
 #'   - jina-embeddings-v2-base-en/zh/de/es/code, jina-embeddings-v2-small-en
 #'
-#' Allowed HuggingFace models:
+#' Confirmed HuggingFace models (other HuggingFace models are allowed with a warning):
 #'   - BAAI/bge series (bge-small-en-v1.5, bge-base-en-v1.5, bge-large-en-v1.5)
 #'   - thenlper/gte series (gte-small, gte-base, gte-large)
+#'   - google/embeddinggemma series (requires `hf.token`)
+#'   - sentence-transformers/all-MiniLM-L6-v2
 #'
 #' @param embedding.model A string.
 #' @param provider One of "auto", "openai", "jina", "huggingface", or "local".
+#'   With "auto" (default), the provider is detected from the model name.
+#' @param hf.token Optional HuggingFace token. Required for gated models such as
+#'   google/embeddinggemma.
 #'
+#' @return Character string naming the provider: "openai", "jina", or
+#'   "huggingface" when auto-detected.
+#'
+#' @keywords internal
 embedding.model_validate <- function(embedding.model, provider = "auto", hf.token = NULL) {
 
   if (!is.character(embedding.model) || length(embedding.model) != 1 || is.na(embedding.model)) {
@@ -846,12 +866,20 @@ embedding.model_validate <- function(embedding.model, provider = "auto", hf.toke
 #' Validates and normalizes the EGA algorithm, unidimensionality method, and model parameters.
 #' Trims whitespace and performs case-insensitive matching. Returns canonical-cased values.
 #'
-#' @param EGA.algorithm A string: one of "leiden", "louvain", "walktrap"
-#'        (or NULL, in which case default behavior takes over)
-#' @param EGA.uni.method A string: one of "expand", "LE", "louvain"
-#' @param EGA_model A string or NULL: one of "glasso", "TMFG"
+#' Each parameter may be NULL, a single string (applied to both the type-level and
+#' overall analyses), or a named list with `type` and/or `overall` elements.
 #'
-#' @return A named list with cleaned and correctly-cased values.
+#' @param EGA.algorithm A string: one of "leiden", "louvain", "walktrap"
+#'        (NULL defaults to "walktrap")
+#' @param EGA.uni.method A string: one of "expand", "LE", "louvain"
+#'        (NULL defaults to "louvain")
+#' @param EGA_model A string or NULL: one of "glasso", "TMFG". NULL leaves the
+#'        model unset so both are compared downstream.
+#'
+#' @return A named list with elements `EGA.algorithm`, `EGA.uni.method`, and
+#'   `EGA_model`, each a list with cleaned and correctly-cased `type` and
+#'   `overall` values.
+#' @keywords internal
 validate_ega_params <- function(EGA.algorithm, EGA.uni.method, EGA_model) {
 
   norm_str <- function(x) {
@@ -978,13 +1006,17 @@ validate_ega_params <- function(EGA.algorithm, EGA.uni.method, EGA_model) {
 
 
 # Validate the Run Flags ----
+#' Validate the `run.overall` and `all.together` Flags
+#'
 #' Check that the `run.overall` and `all.together` flags are logically consistent with the number of item types.
+#'
 #' @param run.overall If a final quality analysis should be run on the overall sample
 #' @param all.together If the reduction analysis should be run on all of the items agnostic of item type
 #' @param silently whether the print statements should appear
 #' @param item.attributes A named list of attributes and item types.
 #'
 #' @return a named list with the updated `all.together` and `run.overall` flags
+#' @keywords internal
 run_flags_validate <- function(run.overall, all.together, item.attributes,
                                silently){
 
@@ -1019,20 +1051,24 @@ run_flags_validate <- function(run.overall, all.together, item.attributes,
 }
 
 # Validate target N ----
-#' Validate and Expand `target.N` for Each Item Attribute
+#' Validate and Expand `target.N` for Each Item Type
 #'
 #' Ensures that `target.N` is either:
-#'   - NULL -> defaults to 60 per attribute
-#'   - A single integer -> repeated for each attribute
-#'   - A list/vector of integers -> must match number of attributes
+#'   - NULL -> defaults to 60 per item type
+#'   - A single integer -> repeated for each item type
+#'   - A named list/vector of integers -> names must match the item types
+#'
+#' Warns when fewer than 15 items per attribute would be generated (unless
+#' only items or embeddings are requested).
 #'
 #' @param target.N An integer, list/vector of integers, or NULL.
-#' @param items.attributes A cleaned list returned from `validate_items.attributes()`.
+#' @param items.attributes A cleaned list returned from `items.attributes_validate()`.
 #' @param items.only A flag used to determine if only items need to be generated
 #' @param embeddings.only A flag used to determine if only embeddings need to be generated
 #' @param silently A flag used to determine if warnings should be printed
 #'
-#' @return A list of integers, one per attribute (named).
+#' @return A named list of integers, one per item type.
+#' @keywords internal
 target.N_validate <- function(target.N, items.attributes, items.only, embeddings.only, silently) {
   n_attr <- length(items.attributes)
   attr_names <- names(items.attributes)
@@ -1131,6 +1167,7 @@ target.N_validate <- function(target.N, items.attributes, items.only, embeddings
 #' Ensures `temperature` is a numeric value between 0 and 2
 #'
 #' @param temperature A numeric value
+#' @keywords internal
 temperature_validate <- function(temperature) {
   if (!is.numeric(temperature) || length(temperature) != 1 || is.na(temperature)) {
     stop("AI-GENIE expects temperature to be a numeric value or NULL.", call. = FALSE)
@@ -1143,10 +1180,11 @@ temperature_validate <- function(temperature) {
 
 #' Validate `top.p` for Text Generation
 #'
-#' Ensures `top.p` is a numeric value between 0 and 1, or NULL.
+#' Ensures `top.p` is a numeric value between 0 and 1.
 #'
 #' @param top.p A numeric value
 #'
+#' @keywords internal
 top.p_validate <- function(top.p) {
 
   if (!is.numeric(top.p) || length(top.p) != 1 || is.na(top.p)) {
@@ -1166,6 +1204,7 @@ top.p_validate <- function(top.p) {
 #'
 #' @param uva.cut.off A numeric value.
 #'
+#' @keywords internal
 uva.cut.off_validate <- function(uva.cut.off) {
 
   if (!is.numeric(uva.cut.off) || length(uva.cut.off) != 1 || is.na(uva.cut.off)) {
@@ -1187,6 +1226,7 @@ uva.cut.off_validate <- function(uva.cut.off) {
 #'
 #' @param response.options An atomic character vector of response labels.
 #'
+#' @keywords internal
 response.options_validate <- function(response.options) {
   # --- If not specified, ignore ---
   if(!is.null(response.options)){
@@ -1223,12 +1263,13 @@ response.options_validate <- function(response.options) {
 #' Validate and Normalize `prompt.notes`
 #'
 #' Accepts a string, NULL, or a named list of strings/NULLs. Ensures one entry
-#' per attribute in `items.attributes`, returning a fully named and cleaned list.
+#' per item type in `items.attributes`, returning a fully named and cleaned list.
 #'
 #' @param prompt.notes A single string, NULL, or named list of strings/NULLs.
-#' @param items.attributes A cleaned list from `validate_items.attributes()`.
+#' @param items.attributes A cleaned list from `items.attributes_validate()`.
 #'
-#' @return A named list of strings, one per attribute, with NULLs replaced by "".
+#' @return A named list of strings, one per item type, with NULLs replaced by "".
+#' @keywords internal
 validate_prompt.notes <- function(prompt.notes, items.attributes) {
   attr_names <- names(items.attributes)
   attr_names_norm <- trimws(tolower(attr_names))
@@ -1303,14 +1344,15 @@ validate_prompt.notes <- function(prompt.notes, items.attributes) {
 #' Validate and Normalize `main.prompts`
 #'
 #' Validates that `main.prompts` is a named list of non-empty strings,
-#' one for each attribute in `items.attributes`, matched by normalized name.
+#' one for each item type in `items.attributes`, matched by normalized name.
 #'
-#' @param main.prompts A named list of prompt strings, one per attribute.
-#' @param items.attributes A cleaned list from `validate_items.attributes()`.
+#' @param main.prompts A named list of prompt strings, one per item type.
+#' @param items.attributes A cleaned list from `items.attributes_validate()`.
 #' @param silently A flag determining wheter a warning message should be printed
 #'
 #' @return A cleaned and ordered named list of trimmed prompt strings.
 #'    Also returns the appropriate 'custom' flag (TRUE if custom ok, FALSE if not)
+#' @keywords internal
 main.prompts_validate <- function(main.prompts, items.attributes, silently) {
   attr_names <- names(items.attributes)
   attr_names_norm <- trimws(tolower(attr_names))
@@ -1404,6 +1446,7 @@ main.prompts_validate <- function(main.prompts, items.attributes, silently) {
 #'   not used.
 #' @param jina.API Character. Jina AI API key. Can be NULL when Jina embeddings are not
 #'   used.
+#' @keywords internal
 check_for_default_APIs <- function(hf.token, groq.API=NULL, openai.API,
                                     anthropic.API = NULL, jina.API = NULL){
 
@@ -1468,6 +1511,7 @@ check_for_default_APIs <- function(hf.token, groq.API=NULL, openai.API,
 #' @param silently Whether to print the warning statements
 #'
 #' @returns if valid, the `max.tokens` value as an integer object type
+#' @keywords internal
 max.tokens_validate <- function(max.tokens, silently){
 
   if (!is.numeric(max.tokens) || length(max.tokens) != 1) {
@@ -1506,6 +1550,7 @@ max.tokens_validate <- function(max.tokens, silently){
 #' @param reps The number of repetitions per prompt requested
 #'
 #' @returns if valid, the `reps` value as an integer object type
+#' @keywords internal
 validate_reps <- function(reps){
 
   if (!is.numeric(reps) || length(reps) != 1) {
@@ -1534,6 +1579,7 @@ validate_reps <- function(reps){
 #' @param prompts The prompts to be given to the model. Either a string or a list of strings
 #'
 #' @returns if valid, a list with the `system.role` and `prompts` objects
+#' @keywords internal
 validate_system.role_prompts <- function(system.role, prompts) {
   # Helper: check that x is a character vector or a list of single-character elements
   is_char_or_charlist <- function(x) {

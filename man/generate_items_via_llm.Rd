@@ -37,6 +37,8 @@ generate_items_via_llm(
 
 \item{openai.API}{Optional OpenAI API key}
 
+\item{anthropic.API}{Optional Anthropic API key}
+
 \item{target.N}{Named list of target item counts per type}
 }
 \value{
@@ -44,6 +46,7 @@ A list with 'items' data frame and 'successful' flag
 }
 \description{
 Generates scale items using the specified LLM provider. Supports OpenAI,
-Groq, and local GGUF models.
+Groq, and Anthropic models (local GGUF models are handled by
+\code{generate_items_via_local_llm()}).
 }
 \keyword{internal}

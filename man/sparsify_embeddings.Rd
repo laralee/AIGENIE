@@ -24,7 +24,9 @@ sparsify_embeddings(
 \item{fallback_upper}{Fallback upper quantile if first attempt fails (default 0.90)}
 }
 \value{
-Sparsified embedding matrix with same dimensions as input
+Sparsified embedding matrix with same dimensions as input. The
+attribute \code{sparsification_applied} records whether sparsification was
+applied and, if so, \code{quantiles_used} records the quantiles used.
 }
 \description{
 Applies sparsification to an embedding matrix by zeroing out values between
@@ -38,7 +40,5 @@ Sparsification process:
 \item If result is all zeros, try fallback quantiles
 \item If still all zeros, return original matrix
 }
-
-\code{silently} is always \code{TRUE}. It is only set to \code{FALSE} for developement
-and diagnostic purposes.
 }
+\keyword{internal}

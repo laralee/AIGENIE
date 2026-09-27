@@ -17,3 +17,4 @@ if valid, the \code{max.tokens} value as an integer object type
 \description{
 Check that max.tokens is an integer
 }
+\keyword{internal}

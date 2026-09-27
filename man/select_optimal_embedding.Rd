@@ -24,7 +24,7 @@ This is computed once on the pre-UVA pool and then subset to the post-UVA
 items in the AI-GENIE pipeline; passing it in (rather than recomputing
 inside) preserves the pre-UVA quantile thresholds.}
 
-\item{true_communities}{A named list of known communities.}
+\item{true_communities}{A named factor of known communities (names are item IDs).}
 
 \item{model}{Character. One of "glasso", "TMFG", or NULL (to test both).}
 
@@ -45,3 +45,4 @@ Full embeddings are evaluated before sparse embeddings. Therefore, exact
 within-model NMI ties retain the full representation. When \code{model = NULL},
 exact cross-model NMI ties prefer TMFG.
 }
+\keyword{internal}

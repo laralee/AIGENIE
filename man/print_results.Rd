@@ -7,9 +7,11 @@
 print_results(obj, obj2, run.overall)
 }
 \arguments{
-\item{obj}{A list object containing the OVERALL analysis results returned by \code{get_results}.}
+\item{obj}{A list containing the OVERALL analysis results (the \code{overall_result}
+returned by \code{run_pipeline_for_all}). Only used when \code{run.overall = TRUE}.}
 
-\item{obj2}{A list object containing the ITEM-TYPE LEVEL analysis results returned by \code{get_results}.}
+\item{obj2}{A named list containing the ITEM-TYPE LEVEL analysis results (the
+\code{item_level} returned by \code{run_item_reduction_pipeline}).}
 
 \item{run.overall}{A flag denoting if overall results should be printed}
 }
@@ -17,5 +19,8 @@ print_results(obj, obj2, run.overall)
 No return value; the function prints the results to the console.
 }
 \description{
-Displays a summary of the AI-GENIE analysis results, including the EGA model used, embedding type, starting and final number of items, and NMI values before and after reduction. The summary includes the number of iterations for both UVA (Unique Variable Analysis) and bootstrapped EGA steps.
+Displays a summary of the AI-GENIE analysis results for each item type (and,
+optionally, the pooled sample), including the EGA model used, embedding type,
+starting and final number of items, and NMI values before and after reduction.
 }
+\keyword{internal}

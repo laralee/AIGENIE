@@ -12,3 +12,4 @@ uva.cut.off_validate(uva.cut.off)
 \description{
 Ensures \code{uva.cut.off} is a single numeric value in \verb{[0, 1)}.
 }
+\keyword{internal}

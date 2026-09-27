@@ -17,3 +17,4 @@ if valid, a list with the \code{system.role} and \code{prompts} objects
 \description{
 Checks \code{system.role} and \code{prompts} for the \code{chat} function
 }
+\keyword{internal}

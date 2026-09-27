@@ -9,12 +9,13 @@ validate_prompt.notes(prompt.notes, items.attributes)
 \arguments{
 \item{prompt.notes}{A single string, NULL, or named list of strings/NULLs.}
 
-\item{items.attributes}{A cleaned list from \code{validate_items.attributes()}.}
+\item{items.attributes}{A cleaned list from \code{items.attributes_validate()}.}
 }
 \value{
-A named list of strings, one per attribute, with NULLs replaced by "".
+A named list of strings, one per item type, with NULLs replaced by "".
 }
 \description{
 Accepts a string, NULL, or a named list of strings/NULLs. Ensures one entry
-per attribute in \code{items.attributes}, returning a fully named and cleaned list.
+per item type in \code{items.attributes}, returning a fully named and cleaned list.
 }
+\keyword{internal}

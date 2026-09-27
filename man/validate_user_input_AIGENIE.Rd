@@ -63,7 +63,8 @@ canonical model name using \code{normalize_model_name()}.}
 
 \item{top.p}{A numeric value between 0 and 1.}
 
-\item{embedding.model}{A string or NULL. Must be one of the accepted OpenAI embedding models.}
+\item{embedding.model}{A string. An OpenAI, Jina AI, or HuggingFace embedding model;
+validated via \code{embedding.model_validate()}.}
 
 \item{target.N}{Either a scalar integer, NULL, or a named list/vector of integers
 corresponding to each attribute. Used for synthetic item generation.}
@@ -88,7 +89,7 @@ Optional.}
 
 \item{system.role}{A string or NULL. Used to customize the system prompt.}
 
-\item{EGA.model}{A string or NULL. One of \code{"BGGM"}, \code{"glasso"}, or \code{"TMFG"}.}
+\item{EGA.model}{A string or NULL. One of \code{"glasso"} or \code{"TMFG"}.}
 
 \item{EGA.algorithm}{A string. One of \code{"leiden"}, \code{"louvain"}, or \code{"walktrap"}.}
 
@@ -126,7 +127,12 @@ A named list containing:
 \item{prompt.notes}{Cleaned and normalized prompt notes (if provided)}
 \item{main.prompts}{Cleaned and normalized main prompts (if provided)}
 \item{custom}{A flag signaling whether we are in custom mode or not}
+\item{provider}{Detected embedding provider (\code{"openai"}, \code{"jina"}, or \code{"huggingface"})}
+\item{all.together}{Validated \code{all.together} flag}
+\item{run.overall}{Validated \code{run.overall} flag}
 }
+\code{EGA.model}, \code{EGA.uni.method}, and \code{EGA.algorithm} are each returned as a list with
+\code{type} and \code{overall} elements (see \code{validate_ega_params()}).
 }
 \description{
 This function performs comprehensive validation and normalization of all user-supplied
@@ -138,3 +144,4 @@ If any input is invalid or misaligned with the package’s expected structure,
 informative errors or warnings are raised. Cleaned and normalized objects are returned
 for use downstream.
 }
+\keyword{internal}

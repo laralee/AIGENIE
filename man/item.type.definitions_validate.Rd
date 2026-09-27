@@ -11,7 +11,7 @@ item.type.definitions_validate(item.type.definitions, items.attributes)
 correspond to a name in \code{items.attributes} and each value must be a
 non-empty string.}
 
-\item{items.attributes}{A cleaned list from \code{validate_items.attributes()}.}
+\item{items.attributes}{A cleaned list from \code{items.attributes_validate()}.}
 }
 \value{
 A cleaned version of \code{item.type.definitions}.
@@ -31,3 +31,4 @@ Returns a cleaned version with:
 \item Trimmed values (case preserved)
 }
 }
+\keyword{internal}

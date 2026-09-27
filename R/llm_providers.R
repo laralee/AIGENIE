@@ -17,8 +17,10 @@
 #' @param groq.API Optional Groq API key (if provided, prefers Groq for compatible models)
 #' @param openai.API Optional OpenAI API key
 #' @param hf.token Optional HuggingFace token
+#' @param anthropic.API Optional Anthropic API key
 #'
-#' @return A list with provider name and normalized model string
+#' @return A list with `provider` (`"openai"`, `"anthropic"`, `"groq"`, or
+#'   `"huggingface"`) and `model` (the model name without a provider prefix)
 #' @keywords internal
 detect_llm_provider <- function(model, groq.API = NULL, openai.API = NULL,
                                  hf.token = NULL, anthropic.API = NULL) {
@@ -185,33 +187,6 @@ detect_llm_provider <- function(model, groq.API = NULL, openai.API = NULL,
     provider = provider,
     model = normalized_model
   )
-}
-
-#' Normalize Model Name (Legacy Compatibility)
-#'
-#' @description
-#' Validates and normalizes model names. This function maintains backward
-#' compatibility with existing code.
-#'
-#' @param model Character string specifying the model
-#' @param groq.API Optional Groq API key
-#' @param openai.API Optional OpenAI API key
-#' @param anthropic.API Optional Anthropic API key
-#' @param silently Logical. Suppress informational messages?
-#'
-#' @return Normalized model name string
-#' @keywords internal
-normalize_model_name <- function(model, groq.API = NULL, openai.API = NULL,
-                                  anthropic.API = NULL, silently = FALSE) {
-
-  result <- detect_llm_provider(model, groq.API, openai.API,
-                                 anthropic.API = anthropic.API)
-
-  if (!silently) {
-    message("Using ", result$provider, " model: ", result$model)
-  }
-
-  return(result$model)
 }
 
 # ============================================================================

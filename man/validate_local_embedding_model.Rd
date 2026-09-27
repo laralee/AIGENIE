@@ -18,3 +18,4 @@ The validated model identifier or path
 Validates that the embedding model is appropriate for local raw embeddings.
 Checks for BERT-family models that provide raw feature extraction.
 }
+\keyword{internal}

@@ -22,7 +22,7 @@ local_chat(
 given to the model. If multiple prompts are supplied, each will be sent
 separately to the model.}
 
-\item{model.path}{A character string. Path for the local model file.
+\item{model.path}{A character string. Path to the local GGUF model file.
 The function does not download models; ensure the model is present locally
 before using this function.}
 
@@ -30,7 +30,7 @@ before using this function.}
 available to the model for a single generation.}
 
 \item{n.gpu.layers}{Integer, default \code{-1}. Number of model layers to place on
-GPU (if supported). Use \code{-1} to let the runtime choose automatically.}
+GPU (if supported). Use \code{-1} to offload all layers, or \code{0} for CPU only.}
 
 \item{max.tokens}{Integer, default \code{1024L}. Maximum number of tokens requested
 from the local model for a single generation.}
@@ -63,8 +63,8 @@ containing:
 }
 \description{
 Send one or more prompts to a locally available large-language model (LLM)
-without making remote API calls. The local model must be installed/available
-on the machine as a local model directory. This function is intended for
+without making remote API calls. The local model must be available on the
+machine as a GGUF model file (run via llama-cpp-python). This function is intended for
 fully local inference (no API key required).
 }
 \details{

@@ -13,3 +13,4 @@ validate_strings(...)
 Ensures that each argument is a single, non-NA string. Throws an error
 if any argument is not a character scalar.
 }
+\keyword{internal}

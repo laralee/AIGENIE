@@ -10,16 +10,16 @@
 #' @param fallback_lower Fallback lower quantile if first attempt fails (default 0.10)
 #' @param fallback_upper Fallback upper quantile if first attempt fails (default 0.90)
 #'
-#' @return Sparsified embedding matrix with same dimensions as input
+#' @return Sparsified embedding matrix with same dimensions as input. The
+#'   attribute `sparsification_applied` records whether sparsification was
+#'   applied and, if so, `quantiles_used` records the quantiles used.
 #' @details
 #' Sparsification process:
 #' 1. Zero out values between lower and upper quantiles
 #' 2. If result is all zeros, try fallback quantiles
 #' 3. If still all zeros, return original matrix
 #'
-#' `silently` is always `TRUE`. It is only set to `FALSE` for developement
-#' and diagnostic purposes.
-#'
+#' @keywords internal
 sparsify_embeddings <- function(embedding_matrix,
                                 lower_quantile = 0.025,
                                 upper_quantile = 0.975,
@@ -78,6 +78,16 @@ sparsify_embeddings <- function(embedding_matrix,
 #' redundant relationship as the primary diagnostic and all redundant
 #' partners for auditability.
 #'
+#' @param uva_object An `EGAnet::UVA` result for the current sweep.
+#' @param removed_ids Character vector of item IDs removed in this sweep.
+#' @param remaining_ids Character vector of item IDs retained after this sweep.
+#' @param items Data frame with `ID` and `statement` columns.
+#' @param sweep Integer. The UVA sweep number.
+#' @param cut.off Numeric. The wTO threshold used by UVA.
+#'
+#' @return A data frame with one row per removed item: `ID`, `uva_sweep`,
+#'   `redundant_with_ID`, `redundant_with_statement`, `wTO`,
+#'   `all_redundant_with_IDs`, and `all_redundant_wTO`.
 #' @keywords internal
 extract_uva_removal_details <- function(
     uva_object,
@@ -234,6 +244,7 @@ extract_uva_removal_details <- function(
 #' @return A list with the reduced matrix, sweep metadata, human-readable
 #'   redundancy groups, and `removal_log`, a tidy item-level table containing
 #'   removed IDs, retained redundant partners, and wTO statistics.
+#' @keywords internal
 reduce_redundancy_uva <- function(embedding_matrix, items, corr = "auto",
                                   uva.cut.off = 0.20) {
 
@@ -483,7 +494,7 @@ reduce_redundancy_uva <- function(embedding_matrix, items, corr = "auto",
 #'   This is computed once on the pre-UVA pool and then subset to the post-UVA
 #'   items in the AI-GENIE pipeline; passing it in (rather than recomputing
 #'   inside) preserves the pre-UVA quantile thresholds.
-#' @param true_communities A named list of known communities.
+#' @param true_communities A named factor of known communities (names are item IDs).
 #' @param model Character. One of "glasso", "TMFG", or NULL (to test both).
 #' @param algorithm Community detection algorithm (e.g., "walktrap").
 #' @param uni.method Unidimensionality method (e.g., "louvain").
@@ -495,6 +506,7 @@ reduce_redundancy_uva <- function(embedding_matrix, items, corr = "auto",
 #' exact cross-model NMI ties prefer TMFG.
 #'
 #' @return A list with best embedding, model, communities, NMI, and comparison log.
+#' @keywords internal
 select_optimal_embedding <- function(embedding_matrix,
                                      sparse_matrix,
                                      true_communities,
@@ -621,6 +633,7 @@ select_optimal_embedding <- function(embedding_matrix,
 #'   and an `items_removed` data frame. For each removed item, the table retains
 #'   the bootstrap run, empirical item stability, cutoff, stability deficit, and
 #'   removal reason. Zero-removal runs return an empty data frame, not `NULL`.
+#' @keywords internal
 iterative_stability_check <- function(embedding_matrix,
                                       items,
                                       cut.off = 0.75,
@@ -910,12 +923,17 @@ calc_final_stability <- function(result,
 
 #' Print Results
 #'
-#' Displays a summary of the AI-GENIE analysis results, including the EGA model used, embedding type, starting and final number of items, and NMI values before and after reduction. The summary includes the number of iterations for both UVA (Unique Variable Analysis) and bootstrapped EGA steps.
+#' Displays a summary of the AI-GENIE analysis results for each item type (and,
+#' optionally, the pooled sample), including the EGA model used, embedding type,
+#' starting and final number of items, and NMI values before and after reduction.
 #'
-#' @param obj A list object containing the OVERALL analysis results returned by \code{get_results}.
-#' @param obj2 A list object containing the ITEM-TYPE LEVEL analysis results returned by \code{get_results}.
+#' @param obj A list containing the OVERALL analysis results (the `overall_result`
+#'   returned by \code{run_pipeline_for_all}). Only used when `run.overall = TRUE`.
+#' @param obj2 A named list containing the ITEM-TYPE LEVEL analysis results (the
+#'   `item_level` returned by \code{run_item_reduction_pipeline}).
 #' @param run.overall A flag denoting if overall results should be printed
 #' @return No return value; the function prints the results to the console.
+#' @keywords internal
 print_results<-function(obj, obj2, run.overall){
 
   # Print the title
@@ -984,10 +1002,9 @@ print_results<-function(obj, obj2, run.overall){
 
 #' Plot Comparisons
 #'
-#' Generates a comparative plot of two network analysis results, typically representing the item network
-#' before and after AI-GENIE reduction. The plot includes provided captions, displays NMI values for each network,
-#' and incorporates a scale title to contextualize the comparison. The layout may be adjusted based on the
-#' \code{ident} parameter.
+#' Generates a side-by-side comparison of two network analysis results, typically representing the item network
+#' before and after AI-GENIE reduction. The plot includes the provided captions, displays NMI values for each
+#' network, and reports the change in NMI as a subtitle.
 #'
 #' @param p1 An object representing the first network analysis result (e.g., the initial EGA object before reduction).
 #' @param p2 An object representing the second network analysis result (e.g., the final EGA object after reduction).
@@ -997,9 +1014,8 @@ print_results<-function(obj, obj2, run.overall){
 #' @param nmi2 A numeric value representing the NMI of the second network.
 #' @param title A character string specifying the title of the plot.
 #'
-#' @return A plot object that visually compares the two network structures. The plot will typically display
-#'         the two networks (either side-by-side or in an overlaid manner) with the provided captions and NMI values.
-#'         The exact type of the plot object (e.g., a \code{ggplot} object or a base R plot) depends on the implementation.
+#' @return A \code{patchwork} object displaying the two networks side by side with the provided captions and NMI values.
+#' @keywords internal
 plot_comparison <- function(p1, p2, caption1, caption2, nmi2, nmi1, title){
 
 
@@ -1036,6 +1052,7 @@ plot_comparison <- function(p1, p2, caption1, caption2, nmi2, nmi1, title){
 #' @param title Overall title.
 #'
 #' @return A patchwork object combining the four panels.
+#' @keywords internal
 plot_stability_comparison <- function(boot1, boot2,
                                       caption1, caption2,
                                       nmi1, nmi2, title){
@@ -1067,13 +1084,14 @@ plot_stability_comparison <- function(boot1, boot2,
 #' Run Final Community Detection with EGA
 #'
 #' @param embedding_matrix A numeric matrix with items as columns.
-#' @param true_communities Named list mapping items to known communities.
+#' @param true_communities Named factor mapping item IDs to known communities.
 #' @param model Network estimation model (e.g., "glasso", "TMFG").
 #' @param algorithm Community detection algorithm (e.g., "walktrap").
 #' @param uni.method Unidimensionality method passed to EGA.
 #' @param corr Character. Correlation method. Default "auto" uses EGAnet's automatic detection.
 #'
 #' @return A list with final communities, final NMI, dropped items, EGA object, and success flag.
+#' @keywords internal
 final_community_detection <- function(embedding_matrix,
                                       true_communities,
                                       model = "glasso",
@@ -1150,6 +1168,43 @@ run_all_together <- function(items) {
   items$type <- rep("All", nrow(items))
 
   items
+}
+
+
+#' Restore original item labels after an `all.together` reduction
+#'
+#' `run_all_together()` relabels items before the pooled reduction. This helper
+#' replaces the relabeled rows in `final_items` (and `initial_items`, when
+#' present) with the original item rows, carrying over the `EGA_com` community
+#' assignments estimated by the pipeline.
+#'
+#' @param result The pipeline result for the pooled `"All"` item type.
+#' @param items The original (un-relabeled) items data frame.
+#'
+#' @return `result` with `final_items` (and `initial_items`, if present) holding
+#'   the original item rows plus their `EGA_com` column.
+#' @keywords internal
+restore_all_together_items <- function(result, items) {
+
+  restore <- function(pipeline_items, keep_all) {
+    ids <- as.character(pipeline_items$ID)
+    item_ids <- as.character(items$ID)
+    out <- if (keep_all) items else items[item_ids %in% ids, , drop = FALSE]
+    if ("EGA_com" %in% names(pipeline_items)) {
+      out$EGA_com <- pipeline_items$EGA_com[match(as.character(out$ID), ids)]
+    }
+    out
+  }
+
+  if (!is.null(result$final_items)) {
+    result$final_items <- restore(result$final_items, keep_all = FALSE)
+  }
+
+  if (!is.null(result$initial_items)) {
+    result$initial_items <- restore(result$initial_items, keep_all = TRUE)
+  }
+
+  result
 }
 
 

@@ -8,6 +8,7 @@
 #'
 #' @return A cleaned and validated items data frame with standardized formatting
 #'
+#' @keywords internal
 items_validate_GENIE <- function(items) {
 
   # Helper function for normalizing strings
@@ -217,6 +218,7 @@ items_validate_GENIE <- function(items) {
 #'
 #' @return A validated embedding matrix (always as matrix type) or NULL if not provided
 #'
+#' @keywords internal
 embedding_matrix_validate_GENIE <- function(embedding.matrix, items, silently = FALSE) {
 
   # ---- 1. Handle NULL case (embeddings will be generated) ----
@@ -439,6 +441,7 @@ embedding_matrix_validate_GENIE <- function(embedding.matrix, items, silently = 
 #'   - Each element is a character vector of unique attributes for that type
 #'   - All values are normalized (lowercase, trimmed) to match AIGENIE expectations
 #'
+#' @keywords internal
 build_item_attributes_from_items <- function(items) {
 
   # Get unique types (should already be normalized from validation)

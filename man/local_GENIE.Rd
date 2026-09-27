@@ -27,7 +27,9 @@ local_GENIE(
 }
 \arguments{
 \item{items}{Data frame with columns: statement, attribute, type, ID.
-All columns must be character type except ID (numeric or character allowed).
+\code{statement}, \code{attribute}, and \code{type} are coerced to character, and \code{attribute}
+and \code{type} are trimmed and lowercased. \code{ID} may be numeric, character, or factor,
+and must be unique.
 \itemize{
 \item \code{statement}: The actual item text
 \item \code{attribute}: The construct/attribute the item measures
@@ -72,9 +74,9 @@ All columns must be character type except ID (numeric or character allowed).
 
 \item{EGA.model}{Network estimation model ("glasso", "TMFG", or NULL for auto-selection)}
 
-\item{EGA.algorithm}{Community detection algorithm ("walktrap", "leiden", "louvain")}
+\item{EGA.algorithm}{Community detection algorithm ("walktrap", "leiden", "louvain"; NULL uses "walktrap")}
 
-\item{EGA.uni.method}{Unidimensionality assessment method ("louvain", "expand", "LE")}
+\item{EGA.uni.method}{Unidimensionality assessment method ("louvain", "expand", "LE"; NULL uses "louvain")}
 
 \item{uva.cut.off}{Numeric in \verb{[0, 1)}. wTO threshold passed to \code{EGAnet::UVA} for the
 redundancy-reduction step (default: 0.20). Lower values remove more items.}
@@ -88,7 +90,7 @@ Number of processing cores passed to \code{EGAnet::bootEGA}. When \code{NULL},
 AIGENIE does not pass an \code{ncores} argument, preserving the current
 default behavior of \code{EGAnet::bootEGA}.}
 
-\item{embeddings.only}{If \code{TRUE}, return embeddings and stop (skip network analysis)}
+\item{embeddings.only}{If \code{TRUE}, return the embeddings and items and stop (skip network analysis)}
 
 \item{run.overall}{A logical value (optional, default: FALSE). Controls whether a \emph{fit} analysis
 on the complete item pool is run \emph{post-reduction.}
@@ -109,60 +111,56 @@ If only one item type is present, this argument will be ignored.}
 \item{silently}{If \code{TRUE}, suppress progress messages}
 }
 \value{
-\strong{Defaults:} \code{items.only = FALSE}, \code{embeddings.only = FALSE},
-\code{run.overall = FALSE}, \code{all.together = FALSE}.
-
-\strong{When \code{items.only = TRUE}:}
-Returns a \code{data.frame} of generated items with columns:
-\code{ID}, \code{statement}, \code{type}, and \code{attribute}.
+The structure of the return value depends on the function flags.
 
 \strong{When \code{embeddings.only = TRUE}:}
-Returns a named \code{list} with two elements:
-\itemize{
-\item \code{embeddings} — an embedding matrix/list (columns or rownames correspond to item IDs).
-\item \code{items} — the items \code{data.frame} described above.
-}
+Returns a named \code{list} with \code{embeddings} (a numeric matrix with embedding dimensions in rows and items in columns, named by item \code{ID}) and \code{items} (the validated items \code{data.frame}).
 
-\strong{Default behaviour} (\code{items.only = FALSE}, \code{embeddings.only = FALSE},
-\code{run.overall = FALSE}, \code{all.together = FALSE}):
+\strong{Default behaviour} (\code{embeddings.only = FALSE}, \code{run.overall = FALSE},
+\code{all.together = FALSE}):
 Returns a named \code{list} with two top-level elements:
 \describe{
 \item{\code{item_type_level}}{A named list where each name is an item type and each element is a per-type named list containing:
 \describe{
-\item{\code{final_NMI}}{Numeric: final normalized mutual information after reduction.}
-\item{\code{initial_NMI}}{Numeric: initial NMI of the pre-reduced item pool.}
-\item{\code{embeddings}}{List or matrix of embeddings for this item type (see 'Notes on \code{embeddings}' below).}
-\item{\code{UVA}}{List from Unique Variable Analysis (contains at least \code{n_removed}, \code{n_sweeps}, \code{redundant_pairs} data.frame).}
-\item{\code{bootEGA}}{List with bootEGA results (e.g. \code{initial_boot}, \code{final_boot}, \code{n_removed}, \code{items_removed}, \code{initial_boot_with_redundancies}).}
-\item{\code{EGA.model_selected}}{Character: chosen EGA model (e.g. \code{"TMFG"} or \code{"Glasso"}).}
-\item{\code{final_items}}{\code{data.frame}: final items after reduction (columns include \code{ID}, \code{statement}, \code{attribute}, \code{type}, \code{EGA_com}).}
-\item{\code{final_EGA}}{EGA object (from EGAnet) after reduction.}
-\item{\code{initial_EGA}}{Initial EGA object computed on the pre-reduced item set.}
+\item{\code{final_NMI}}{Numeric: normalized mutual information (NMI) of the final EGA solution after reduction.}
+\item{\code{initial_NMI}}{Numeric: NMI of the pre-reduction item pool, estimated on the full (dense) embeddings with the selected EGA model.}
+\item{\code{embeddings}}{List containing \code{selected} (\code{"full"} or \code{"sparse"}, the embedding representation chosen for reduction), \code{selection_log} (a \code{data.frame} of the NMI for each candidate EGA model and representation), and \code{full} and \code{sparse} (embedding matrices for the final items).}
+\item{\code{UVA}}{List from Unique Variable Analysis containing \code{n_removed}, \code{n_sweeps}, \code{redundant_pairs} (a \code{data.frame} of redundant item groups), and \code{removal_log} (a \code{data.frame} with one row per removed item, its retained redundant partner, and the wTO statistic).}
+\item{\code{bootEGA}}{List containing \code{post_uva_initial_boot} and \code{post_uva_final_boot} (\code{bootEGA} objects before and after stability filtering), \code{n_removed}, \code{items_removed} (a \code{data.frame} of removed items with their item stability), and \code{initial_boot_with_redundancies} (a \code{bootEGA} object for the pre-reduction pool, used in \code{stability_plot}).}
+\item{\code{EGA.model_selected}}{Character: the chosen EGA model (\code{"glasso"} or \code{"TMFG"}).}
+\item{\code{final_items}}{\code{data.frame}: final items after reduction (columns \code{ID}, \code{statement}, \code{attribute}, \code{type}, and \code{EGA_com}, the final EGA community).}
+\item{\code{final_EGA}}{\code{EGA.fit} object (from EGAnet) for the final items.}
+\item{\code{initial_EGA}}{\code{EGA.fit} object for the pre-reduction item pool.}
 \item{\code{start_N}}{Integer: initial number of items in this type.}
 \item{\code{final_N}}{Integer: final number of items in this type.}
-\item{\code{network_plot}}{\code{ggplot} / \code{patchwork} object comparing networks before vs after reduction.}
-\item{\code{stability_plot}}{\code{ggplot} / \code{patchwork} object showing item stability before vs after reduction.}
+\item{\code{network_plot}}{\code{patchwork} object comparing networks before vs after reduction.}
+\item{\code{stability_plot}}{\code{patchwork} object showing networks and item stability before vs after reduction.}
+\item{\code{filtering_audit}}{\code{data.frame} with one row per removed item, giving the removal stage (\code{"UVA"}, \code{"EGA_selection"}, \code{"bootEGA"}, or \code{"final_EGA"}), the reason, the filtering statistic and cutoff, redundancy partner(s), item stability, and pre-reduction network-loading diagnostics. Network loadings are descriptive only; they are not used as removal criteria.}
+\item{\code{reduction_summary}}{\code{data.frame} giving the number of items (\code{N}), \code{NMI}, \code{n_removed_at_stage}, and \code{delta_NMI} (change from \code{initial_NMI}) at each stage of the reduction.}
 }
 }
-
-\item{\code{overall}}{Named list with aggregated results across all item types. Under the default this contains:
-\describe{
-\item{\code{final_items}}{\code{data.frame} of final items across all types (columns as above).}
-\item{\code{embeddings}}{Embeddings for the full reduced item set (see 'Notes on \code{embeddings}' below). Note: \code{overall$embeddings} does \strong{not} include \code{selected}.}
-}
-}
+\item{\code{filtering_audit}}{\code{data.frame} combining the per-type \code{filtering_audit} tables across all item types.}
 }
 
-\strong{When \code{run.overall = TRUE}} (\code{items.only = FALSE}, \code{embeddings.only = FALSE}):
-\describe{
-\item{\code{item_type_level}}{Same per-type structure as the default (see above).}
-\item{\code{overall}}{A named list with aggregated results (not limited to \code{final_items} and \code{embeddings}) containing:
-\code{final_NMI}, \code{initial_NMI}, \code{embeddings}, \code{EGA.model_selected}, \code{final_items}, \code{final_EGA}, \code{initial_EGA}, \code{start_N}, \code{final_N}, and \code{network_plot}.}
-}
+\strong{When \code{run.overall = TRUE}} (and more than one item type is present):
+the list additionally contains \code{overall}, a pooled post-reduction fit of all items
+retained by the type-level reductions. No further items are removed at this level.
+\code{overall} contains \code{final_NMI}, \code{initial_NMI}, \code{embeddings} (\code{selected}, \code{full}, and
+\code{sparse}), \code{EGA.model_selected}, \code{final_items}, \code{final_EGA}, \code{initial_EGA}, \code{start_N},
+\code{final_N}, \code{network_plot}, \code{stability_plot} (always \code{NULL}), \code{filtering_audit}, and
+\code{reduction_summary}. Pooled NMI values compare EGA communities against
+type-by-attribute labels. The top-level \code{filtering_audit} then reports pooled (rather
+than within-type) pre-reduction network-loading diagnostics.
 
-\strong{When \code{all.together = TRUE}} (regardless of \code{run.overall}):
-Results are \strong{not} split into \code{item_type_level} and \code{overall}. Instead the function returns a single named list containing:
-\code{final_NMI}, \code{initial_NMI}, \code{embeddings}, \code{UVA}, \code{bootEGA}, \code{EGA.model_selected}, \code{final_items}, \code{final_EGA}, \code{initial_EGA}, \code{start_N}, \code{final_N}, \code{network_plot}, and \code{stability_plot}.
+\strong{When \code{all.together = TRUE}} (and more than one item type is present):
+results are \strong{not} split by item type. The function returns a single per-type
+named list (as described under \code{item_type_level} above) for the pooled analysis, in
+which EGA communities are compared against type-by-attribute labels. Here,
+\code{final_items} contains the original item rows (with their original \code{type} and
+\code{attribute} labels) plus the \code{EGA_com} column.
+
+\strong{On failure:} if the reduction pipeline fails, the partial per-type results list is
+returned.
 }
 \description{
 Local version of GENIE that uses locally installed embedding models for complete

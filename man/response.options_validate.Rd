@@ -13,3 +13,4 @@ response.options_validate(response.options)
 Validates that \code{response.options} is an atomic vector of non-empty strings,
 with no missing or invalid values. Whitespace is trimmed from each string.
 }
+\keyword{internal}

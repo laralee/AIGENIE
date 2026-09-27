@@ -14,3 +14,4 @@ Validates that all arguments passed to the function are scalar boolean values (\
 If any argument is not a boolean, an error is thrown that identifies the offending variable
 by name and instructs the user to set it to either \code{TRUE} or \code{FALSE}.
 }
+\keyword{internal}

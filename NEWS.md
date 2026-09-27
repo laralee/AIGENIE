@@ -10,6 +10,20 @@
   examples.
 - Added an official filtering-audit vignette and pkgdown documentation site.
 
+## Bug fixes
+- `AIGENIE()` and `local_AIGENIE()` now honor a user-supplied `EGA.model`;
+  previously it was silently ignored and both models were always compared.
+- With `all.together = TRUE`, `final_items` (and `initial_items` when
+  `keep.org = TRUE`) now retain the `EGA_com` community column alongside the
+  original `type` and `attribute` labels.
+- `AIGENIE()` now returns the type-level results when the `run.overall` fit
+  fails, even when `silently = TRUE`.
+
+## Documentation
+- Corrected stale function documentation, including the structure of the
+  returned objects and the `EGA.algorithm` default (`"walktrap"`).
+- Internal helpers are no longer listed in the package reference index.
+
 ## Reproducibility
 - Restored correct UVA redundancy detection with current EGAnet versions.
 - Set bootEGA reduction to 500 bootstrap iterations.

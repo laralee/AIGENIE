@@ -28,3 +28,4 @@ used.}
 \description{
 Check for users who pasted the example code but didn't add an API key
 }
+\keyword{internal}

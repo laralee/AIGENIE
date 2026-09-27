@@ -16,3 +16,4 @@ A cleaned and validated items data frame with standardized formatting
 Validates that the items data frame meets all requirements for GENIE processing.
 Ensures proper structure, column presence, data types, and content validity.
 }
+\keyword{internal}

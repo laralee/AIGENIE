@@ -23,3 +23,4 @@ Builds a 4-panel comparison: pre-reduction network + pre-reduction item stabilit
 next to post-reduction network + post-reduction item stability. Mirrors the layout
 of the AIGENIE simulation/reference figure.
 }
+\keyword{internal}

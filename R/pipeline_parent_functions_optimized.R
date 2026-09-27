@@ -17,6 +17,7 @@
 #' @return A named list containing pipeline results for this type, including a
 #'   `filtering_audit` table with one row per removed item and a
 #'   `reduction_summary` table describing NMI and item-count changes by stage.
+#' @keywords internal
 run_pipeline_for_item_type <- function(embedding_matrix,
                                        items,
                                        type_name,
@@ -406,7 +407,10 @@ run_pipeline_for_item_type <- function(embedding_matrix,
 #' @param silently Logical. Whether to print progress statements
 #' @param plot Logical. Whether to plot the network plots at the end
 #'
-#' @return A named list of pipeline results, one per item type
+#' @return A list with `item_level` (a named list of pipeline results, one per
+#'   item type; `NULL` for any type whose pipeline errored) and `success`
+#'   (logical; `FALSE` if any item type failed).
+#' @keywords internal
 run_item_reduction_pipeline <- function(embedding_matrix,
                                         items,
                                         EGA.model = NULL,

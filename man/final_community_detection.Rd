@@ -16,7 +16,7 @@ final_community_detection(
 \arguments{
 \item{embedding_matrix}{A numeric matrix with items as columns.}
 
-\item{true_communities}{Named list mapping items to known communities.}
+\item{true_communities}{Named factor mapping item IDs to known communities.}
 
 \item{model}{Network estimation model (e.g., "glasso", "TMFG").}
 
@@ -32,3 +32,4 @@ A list with final communities, final NMI, dropped items, EGA object, and success
 \description{
 Run Final Community Detection with EGA
 }
+\keyword{internal}

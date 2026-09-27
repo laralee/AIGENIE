@@ -12,3 +12,4 @@ temperature_validate(temperature)
 \description{
 Ensures \code{temperature} is a numeric value between 0 and 2
 }
+\keyword{internal}

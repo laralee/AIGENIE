@@ -8,16 +8,25 @@ validate_ega_params(EGA.algorithm, EGA.uni.method, EGA_model)
 }
 \arguments{
 \item{EGA.algorithm}{A string: one of "leiden", "louvain", "walktrap"
-(or NULL, in which case default behavior takes over)}
+(NULL defaults to "walktrap")}
 
-\item{EGA.uni.method}{A string: one of "expand", "LE", "louvain"}
+\item{EGA.uni.method}{A string: one of "expand", "LE", "louvain"
+(NULL defaults to "louvain")}
 
-\item{EGA_model}{A string or NULL: one of "glasso", "TMFG"}
+\item{EGA_model}{A string or NULL: one of "glasso", "TMFG". NULL leaves the
+model unset so both are compared downstream.}
 }
 \value{
-A named list with cleaned and correctly-cased values.
+A named list with elements \code{EGA.algorithm}, \code{EGA.uni.method}, and
+\code{EGA_model}, each a list with cleaned and correctly-cased \code{type} and
+\code{overall} values.
 }
 \description{
 Validates and normalizes the EGA algorithm, unidimensionality method, and model parameters.
 Trims whitespace and performs case-insensitive matching. Returns canonical-cased values.
 }
+\details{
+Each parameter may be NULL, a single string (applied to both the type-level and
+overall analyses), or a named list with \code{type} and/or \code{overall} elements.
+}
+\keyword{internal}

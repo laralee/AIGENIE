@@ -31,3 +31,4 @@ removed IDs, retained redundant partners, and wTO statistics.
 \description{
 Applies EGAnet::UVA iteratively and logs human-readable redundant item sets.
 }
+\keyword{internal}

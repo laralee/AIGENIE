@@ -20,9 +20,12 @@ detect_llm_provider(
 \item{openai.API}{Optional OpenAI API key}
 
 \item{hf.token}{Optional HuggingFace token}
+
+\item{anthropic.API}{Optional Anthropic API key}
 }
 \value{
-A list with provider name and normalized model string
+A list with \code{provider} (\code{"openai"}, \code{"anthropic"}, \code{"groq"}, or
+\code{"huggingface"}) and \code{model} (the model name without a provider prefix)
 }
 \description{
 Determines which API provider to use based on the model name.

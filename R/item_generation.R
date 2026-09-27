@@ -12,7 +12,8 @@
 #'
 #' @description
 #' Generates scale items using the specified LLM provider. Supports OpenAI,
-#' Groq, and local GGUF models.
+#' Groq, and Anthropic models (local GGUF models are handled by
+#' \code{generate_items_via_local_llm()}).
 #'
 #' @param main.prompts Named list of prompts for each item type
 #' @param system.role Character string defining the system role
@@ -23,6 +24,7 @@
 #' @param silently Logical. Suppress progress messages?
 #' @param groq.API Optional Groq API key
 #' @param openai.API Optional OpenAI API key
+#' @param anthropic.API Optional Anthropic API key
 #' @param target.N Named list of target item counts per type
 #'
 #' @return A list with 'items' data frame and 'successful' flag

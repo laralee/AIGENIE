@@ -36,8 +36,9 @@ the prompts.}
 \item{openai.API}{A character string, default \code{NULL}. Your OpenAI API
 key (required when using an OpenAI model).}
 
-\item{hf.token}{A character string, default \code{NULL}. Your Hugging Face
-token (required when using a Hugging Face-hosted model).}
+\item{hf.token}{A character string, default \code{NULL}. Currently unused:
+Hugging Face-hosted text generation is not supported by \code{chat()}. For
+open-source models, use Groq (\code{groq.API}) or \code{local_chat()}.}
 
 \item{groq.API}{A character string, default \code{NULL}. Your Groq API key
 (required when using a Groq-hosted model).}
@@ -70,7 +71,7 @@ containing:
 }
 \description{
 Send one or more prompts to a remote large-language model (LLM) using the
-appropriate provider API (OpenAI, Hugging Face, Groq, or Anthropic). A valid
+appropriate provider API (OpenAI, Groq, or Anthropic). A valid
 API key for at least one provider is required. To use a local model
 (no API call), see \code{local_chat()}.
 }
@@ -102,14 +103,14 @@ prompt <- "Why does the planet Saturn have rings? Give a 100 word explanation."
 system.role <- "You specialize in tutoring astronomy for high school students."
 
 # Add the number of prompt repetitions. By default, this is set to 1. But it
-# may bu useful to increase the number of repetitions to get a sense of how
+# may be useful to increase the number of repetitions to get a sense of how
 # consistent your output might be.
 reps <- 3
 
 # Now you are ready to chat with an LLM
 first_chat <- chat(
   # Set your own API key. If you are not using OpenAI, change the 1st
-  # argument to match your API key. Choices are `hf.token`, `groq.API`,
+  # argument to match your API key. Choices are `groq.API`,
   # `anthropic.API`, and `openai.API`. In this example, I'm using
   # `openai.API` since I want to chat with a GPT model.
   openai.API = key,
@@ -122,7 +123,7 @@ first_chat <- chat(
 # Check how the output changes from iteration to iteration
 first_chat$response[[1]] # first iteration output
 first_chat$response[[2]] # second iteration output
-first_chat$response[[2]] # third iteration output
+first_chat$response[[3]] # third iteration output
 
 
 ####################################################################

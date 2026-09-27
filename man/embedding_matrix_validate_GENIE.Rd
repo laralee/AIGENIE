@@ -21,3 +21,4 @@ A validated embedding matrix (always as matrix type) or NULL if not provided
 Validates that the optional embedding matrix meets all requirements for GENIE processing.
 Ensures proper structure, dimensions, column names match item IDs, and numeric content.
 }
+\keyword{internal}

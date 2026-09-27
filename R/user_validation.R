@@ -21,7 +21,8 @@
 #'   canonical model name using \code{normalize_model_name()}.
 #' @param temperature A numeric value between 0 and 2.
 #' @param top.p A numeric value between 0 and 1.
-#' @param embedding.model A string or NULL. Must be one of the accepted OpenAI embedding models.
+#' @param embedding.model A string. An OpenAI, Jina AI, or HuggingFace embedding model;
+#'   validated via \code{embedding.model_validate()}.
 #' @param target.N Either a scalar integer, NULL, or a named list/vector of integers
 #'   corresponding to each attribute. Used for synthetic item generation.
 #' @param domain A string describing the domain of the assessment.
@@ -36,7 +37,7 @@
 #' @param prompt.notes A named list or string that gives the LLM additional instructions to be appended to the prompt.
 #'   Optional.
 #' @param system.role A string or NULL. Used to customize the system prompt.
-#' @param EGA.model A string or NULL. One of `"BGGM"`, `"glasso"`, or `"TMFG"`.
+#' @param EGA.model A string or NULL. One of `"glasso"` or `"TMFG"`.
 #' @param EGA.algorithm A string. One of `"leiden"`, `"louvain"`, or `"walktrap"`.
 #' @param EGA.uni.method A string. One of `"expand"`, `"LE"`, or `"louvain"`.
 #' @param keep.org A boolean. If TRUE, preserve original inputs in the output.
@@ -59,7 +60,12 @@
 #'   \item{prompt.notes}{Cleaned and normalized prompt notes (if provided)}
 #'   \item{main.prompts}{Cleaned and normalized main prompts (if provided)}
 #'   \item{custom}{A flag signaling whether we are in custom mode or not}
+#'   \item{provider}{Detected embedding provider (`"openai"`, `"jina"`, or `"huggingface"`)}
+#'   \item{all.together}{Validated `all.together` flag}
+#'   \item{run.overall}{Validated `run.overall` flag}
 #' }
+#' `EGA.model`, `EGA.uni.method`, and `EGA.algorithm` are each returned as a list with
+#' `type` and `overall` elements (see \code{validate_ega_params()}).
 #'
 #' @param anthropic.API Character. Anthropic API key. Can be NULL when Anthropic models are
 #'   not used.
@@ -69,6 +75,7 @@
 #'   after item-type-level reduction.
 #' @param all.together Logical. Whether to run the reduction pipeline on all item types
 #'   together rather than separately.
+#' @keywords internal
 validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
                                         main.prompts,
                                         groq.API, anthropic.API, jina.API,
@@ -131,7 +138,7 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
   EGA_params <- validate_ega_params(EGA.algorithm, EGA.uni.method, EGA.model)
   EGA.algorithm <- EGA_params$EGA.algorithm
   EGA.uni.method <- EGA_params$EGA.uni.method
-  EGA.model <- EGA_params$EGA.model
+  EGA.model <- EGA_params$EGA_model
 
 
   # Validate target N
@@ -221,6 +228,7 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
 #'   after item-type-level reduction.
 #' @param all.together Logical. Whether to run the reduction pipeline on all item types
 #'   together rather than separately.
+#' @keywords internal
 validate_user_input_local_AIGENIE <- function(
   item.attributes, model.path, embedding.model, main.prompts,
   temperature, top.p, target.N, domain, scale.title, item.examples,
@@ -263,7 +271,7 @@ validate_user_input_local_AIGENIE <- function(
   EGA_params <- validate_ega_params(EGA.algorithm, EGA.uni.method, EGA.model)
   EGA.algorithm <- EGA_params$EGA.algorithm
   EGA.uni.method <- EGA_params$EGA.uni.method
-  EGA.model <- EGA_params$EGA.model
+  EGA.model <- EGA_params$EGA_model
 
   # 7. Validate target.N
   target.N <- target.N_validate(target.N, item.attributes, items.only, embeddings.only, silently)
@@ -357,6 +365,7 @@ validate_user_input_local_AIGENIE <- function(
 #'   after item-type-level reduction.
 #' @param all.together Logical. Whether to run the reduction pipeline on all item types
 #'   together rather than separately.
+#' @keywords internal
 validate_user_input_GENIE <- function(
     items,
     embedding.matrix,
@@ -522,6 +531,7 @@ validate_user_input_GENIE <- function(
 #'   after item-type-level reduction.
 #' @param all.together Logical. Whether to run the reduction pipeline on all item types
 #'   together rather than separately.
+#' @keywords internal
 validate_user_input_local_GENIE <- function(
     items,
     embedding.matrix,

@@ -55,3 +55,4 @@ A named list containing pipeline results for this type, including a
 \description{
 Run full pipeline for a single item type
 }
+\keyword{internal}

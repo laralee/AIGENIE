@@ -15,3 +15,4 @@ if valid, the \code{reps} value as an integer object type
 \description{
 Check that reps is an integer
 }
+\keyword{internal}

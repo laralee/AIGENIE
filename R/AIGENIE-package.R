@@ -167,7 +167,7 @@
 #'
 #' @seealso
 #' \code{\link{AIGENIE}} for the main function,
-#' \code{\link{GENIE}} for embedding-only analysis,
+#' \code{\link{GENIE}} for reducing and validating user-supplied items,
 #' \code{\link[EGAnet:EGAnet-package]{EGAnet}} for the underlying EGA analysis methods.
 #'
 #' @name AIGENIE-package

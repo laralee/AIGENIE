@@ -6,6 +6,18 @@
 \usage{
 embed_items_huggingface_api(embedding.model, hf.token, items, silently = FALSE)
 }
+\arguments{
+\item{embedding.model}{HuggingFace model name}
+
+\item{hf.token}{Optional HuggingFace API token}
+
+\item{items}{Data frame with 'statement' and 'ID' columns}
+
+\item{silently}{Logical. Suppress progress messages?}
+}
+\value{
+A list with 'embeddings' matrix and 'success' flag
+}
 \description{
 Embed Items Using HuggingFace Inference API
 }

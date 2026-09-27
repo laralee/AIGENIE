@@ -58,3 +58,4 @@ A named list containing all validated and normalized parameters
 \description{
 Validate All User Inputs for GENIE
 }
+\keyword{internal}

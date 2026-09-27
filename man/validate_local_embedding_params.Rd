@@ -26,3 +26,4 @@ A list of validated parameters
 \description{
 Validates parameters specific to local embedding generation
 }
+\keyword{internal}

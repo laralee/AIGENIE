@@ -23,3 +23,4 @@ Reverse engineers the \code{item.attributes} object structure required by AIGENI
 from a validated items data frame. This allows GENIE to work with user-provided
 items by reconstructing the expected attribute structure.
 }
+\keyword{internal}

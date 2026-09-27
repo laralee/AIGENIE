@@ -6,115 +6,6 @@
 # local models.
 
 # ============================================================================
-# Provider Detection for Embedding Models
-# ============================================================================
-
-#' Validate and Detect Embedding Model Provider
-#' 
-#' @description
-#' Determines which provider to use for embeddings based on the model name.
-#' 
-#' @param embedding.model Character string specifying the embedding model
-#' 
-#' @return Character string: "openai", "jina", "huggingface", or "local"
-#' @keywords internal
-embedding.model_validate <- function(embedding.model) {
-  
-  # OpenAI embedding models
-  openai_models <- c(
-    "text-embedding-3-small",
-    "text-embedding-3-large", 
-    "text-embedding-ada-002"
-  )
-  
-  # Jina AI embedding models
-  jina_models <- c(
-    "jina-embeddings-v4",
-    "jina-embeddings-v3",
-    "jina-clip-v2",
-    "jina-code-embeddings-1.5b",
-    "jina-code-embeddings-0.5b",
-    "jina-embeddings-v2-base-en",
-    "jina-embeddings-v2-base-zh",
-    "jina-embeddings-v2-base-de",
-    "jina-embeddings-v2-base-es",
-    "jina-embeddings-v2-base-code",
-    "jina-embeddings-v2-small-en"
-  )
-  
-  # Known HuggingFace API-compatible models
-  hf_api_models <- c(
-    "BAAI/bge-small-en-v1.5",
-    "BAAI/bge-base-en-v1.5",
-    "BAAI/bge-large-en-v1.5",
-    "thenlper/gte-small",
-    "thenlper/gte-base",
-    "thenlper/gte-large"
-  )
-  
-  # Models that need sentence-transformers library
-  sentence_transformer_models <- c(
-    "sentence-transformers/all-MiniLM-L6-v2",
-    "sentence-transformers/all-mpnet-base-v2",
-    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-    "google/embeddinggemma-300m",
-    "intfloat/e5-small-v2",
-    "intfloat/e5-base-v2",
-    "intfloat/e5-large-v2"
-  )
-  
-  # Local raw embedding models (BERT family)
-  local_models <- c(
-    "bert-base-uncased",
-    "bert-base-cased",
-    "bert-large-uncased",
-    "roberta-base",
-    "roberta-large",
-    "distilbert-base-uncased",
-    "microsoft/deberta-v3-base",
-    "albert-base-v2"
-  )
-  
-  model_lower <- tolower(trimws(embedding.model))
-  
-  # Check OpenAI
-  if (embedding.model %in% openai_models) {
-    return("openai")
-  }
-  
-  # Check Jina (exact match or prefix pattern)
-  if (embedding.model %in% jina_models || grepl("^jina-", model_lower)) {
-    return("jina")
-  }
-  
-  # Check HuggingFace (both API and sentence-transformers)
-  if (embedding.model %in% hf_api_models ||
-      embedding.model %in% sentence_transformer_models ||
-      grepl("^BAAI/|^thenlper/|^sentence-transformers/|^intfloat/|^google/", embedding.model)) {
-    return("huggingface")
-  }
-  
-  # Check local models
-  if (embedding.model %in% local_models ||
-      grepl("^bert|^roberta|^distilbert|^albert|^deberta", model_lower)) {
-    return("local")
-  }
-  
-  # If contains "/" assume HuggingFace
-  if (grepl("/", embedding.model)) {
-    warning("Unknown embedding model '", embedding.model, "'. ",
-            "Assuming HuggingFace model.", call. = FALSE, immediate. = TRUE)
-    return("huggingface")
-  }
-  
-  # Default to local for unknown models
-  warning("Unknown embedding model '", embedding.model, "'. ",
-          "Will attempt to load as a local transformer model.", 
-          call. = FALSE, immediate. = TRUE)
-  return("local")
-}
-
-# ============================================================================
 # Unified Embedding Interface
 # ============================================================================
 
@@ -500,6 +391,12 @@ embed_items_huggingface <- function(embedding.model = "BAAI/bge-base-en-v1.5",
 
 #' Embed Items Using HuggingFace Inference API
 #' 
+#' @param embedding.model HuggingFace model name
+#' @param hf.token Optional HuggingFace API token
+#' @param items Data frame with 'statement' and 'ID' columns
+#' @param silently Logical. Suppress progress messages?
+#' 
+#' @return A list with 'embeddings' matrix and 'success' flag
 #' @keywords internal
 embed_items_huggingface_api <- function(embedding.model, hf.token, items, silently = FALSE) {
   
@@ -579,6 +476,12 @@ embed_items_huggingface_api <- function(embedding.model, hf.token, items, silent
 
 #' Embed Items Using Sentence-Transformers Library
 #' 
+#' @param embedding.model HuggingFace / sentence-transformers model name
+#' @param items Data frame with 'statement' and 'ID' columns
+#' @param hf.token Optional HuggingFace API token (used to log in for gated models)
+#' @param silently Logical. Suppress progress messages?
+#' 
+#' @return A list with 'embeddings' matrix and 'success' flag
 #' @keywords internal
 embed_items_via_sentence_transformers <- function(embedding.model, items, 
                                                    hf.token = NULL, silently = FALSE) {

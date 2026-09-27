@@ -66,8 +66,8 @@ fully local inference (no API key required).</p>
 <span>  max.tokens <span class="op">=</span> <span class="fl">1024</span>,</span>
 <span>  system.role <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reps <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  temperature <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  top.p <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  temperature <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  top.p <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  silently <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -117,12 +117,14 @@ given to the model (independent generations).</p></dd>
 
 
 <dt id="arg-temperature">temperature<a class="anchor" aria-label="anchor" href="#arg-temperature"></a></dt>
-<dd><p>Numeric, default <code>1</code>. Sampling temperature controlling
-response randomness.</p></dd>
+<dd><p>Numeric or <code>NULL</code>, default <code>NULL</code>. Sampling temperature
+controlling response randomness. <code>NULL</code> uses the local model's (llama.cpp)
+default.</p></dd>
 
 
 <dt id="arg-top-p">top.p<a class="anchor" aria-label="anchor" href="#arg-top-p"></a></dt>
-<dd><p>Numeric, default <code>1</code>. Top-p (nucleus) sampling parameter.</p></dd>
+<dd><p>Numeric or <code>NULL</code>, default <code>NULL</code>. Top-p (nucleus) sampling
+parameter. <code>NULL</code> uses the local model's (llama.cpp) default.</p></dd>
 
 
 <dt id="arg-silently">silently<a class="anchor" aria-label="anchor" href="#arg-silently"></a></dt>

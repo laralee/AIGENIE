@@ -10,8 +10,8 @@ generate_text_llm(
   prompt,
   system.role = NULL,
   model = "gpt-4o",
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   max_tokens = 2048,
   openai.API = NULL,
   groq.API = NULL,
@@ -36,11 +36,11 @@ generate_text_llm(
 
 - temperature:
 
-  Numeric. Sampling temperature (0-2)
+  Numeric or NULL. Sampling temperature (0-2). Not sent when NULL.
 
 - top.p:
 
-  Numeric. Nucleus sampling parameter (0-1)
+  Numeric or NULL. Nucleus sampling parameter (0-1). Not sent when NULL.
 
 - max_tokens:
 
@@ -64,4 +64,6 @@ generate_text_llm(
 
 ## Value
 
-Character string with the generated text
+Character string with the generated text. If the provider returns an
+error that mentions `temperature` or `top_p`, the error message is
+extended with a hint to leave these parameters as NULL.

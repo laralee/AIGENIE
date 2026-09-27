@@ -37,11 +37,13 @@ generate_items_via_local_llm(
 
 - temperature:
 
-  Numeric. Sampling temperature
+  Numeric or NULL. Sampling temperature (NULL uses the llama.cpp
+  default)
 
 - top.p:
 
-  Numeric. Nucleus sampling parameter
+  Numeric or NULL. Nucleus sampling parameter (NULL uses the llama.cpp
+  default)
 
 - adaptive:
 

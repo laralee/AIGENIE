@@ -63,6 +63,7 @@
 <url><loc>https://laralee.github.io/AIGENIE/reference/install_aigenie_packages.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/install_gpu_support.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/install_local_llm_support.html</loc></url>
+<url><loc>https://laralee.github.io/AIGENIE/reference/is_sampling_param_error.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/item.attribute.definitions_validate.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/item.examples_validate.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/item.type.definitions_validate.html</loc></url>
@@ -93,6 +94,7 @@
 <url><loc>https://laralee.github.io/AIGENIE/reference/run_item_reduction_pipeline.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/run_pipeline_for_all.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/run_pipeline_for_item_type.html</loc></url>
+<url><loc>https://laralee.github.io/AIGENIE/reference/sampling_args.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/select_optimal_embedding.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/set_huggingface_token.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/sparsify_embeddings.html</loc></url>
@@ -114,5 +116,6 @@
 <url><loc>https://laralee.github.io/AIGENIE/reference/validate_user_input_GENIE.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/validate_user_input_local_AIGENIE.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/validate_user_input_local_GENIE.html</loc></url>
+<url><loc>https://laralee.github.io/AIGENIE/reference/warn_sampling_params.html</loc></url>
 </urlset>
 

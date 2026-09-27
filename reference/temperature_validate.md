@@ -1,6 +1,7 @@
 # Validate `temperature` for Text Generation
 
-Ensures `temperature` is a numeric value between 0 and 2
+Ensures `temperature` is NULL (not sent to the model) or a numeric value
+between 0 and 2
 
 ## Usage
 
@@ -12,4 +13,4 @@ temperature_validate(temperature)
 
 - temperature:
 
-  A numeric value
+  A numeric value or NULL

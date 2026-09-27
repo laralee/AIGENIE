@@ -38,11 +38,11 @@ generate_items_via_llm(
 
 - top.p:
 
-  Numeric. Nucleus sampling parameter
+  Numeric or NULL. Nucleus sampling parameter (not sent when NULL)
 
 - temperature:
 
-  Numeric. Sampling temperature
+  Numeric or NULL. Sampling temperature (not sent when NULL)
 
 - adaptive:
 
@@ -70,4 +70,6 @@ generate_items_via_llm(
 
 ## Value
 
-A list with 'items' data frame and 'successful' flag
+A list with 'items' data frame and 'successful' flag. Generation stops
+with an error on the first API error that mentions `temperature` or
+`top_p`, since retrying such a request cannot succeed.

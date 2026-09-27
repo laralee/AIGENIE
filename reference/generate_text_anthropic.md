@@ -10,8 +10,8 @@ generate_text_anthropic(
   prompt,
   system.role = NULL,
   model = "claude-sonnet-4-5-20250929",
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   max_tokens = 2048,
   api_key
 )
@@ -33,11 +33,11 @@ generate_text_anthropic(
 
 - temperature:
 
-  Numeric. Sampling temperature (0-1)
+  Numeric or NULL. Sampling temperature (0-1; not sent when NULL)
 
 - top.p:
 
-  Numeric. Nucleus sampling parameter (0-1)
+  Numeric or NULL. Nucleus sampling parameter (0-1; not sent when NULL)
 
 - max_tokens:
 

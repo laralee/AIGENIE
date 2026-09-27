@@ -67,8 +67,8 @@ API key for at least one provider is required. To use a local model
 <span>  groq.API <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  anthropic.API <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reps <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  top.p <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  temperature <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  top.p <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  temperature <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  max.tokens <span class="op">=</span> <span class="fl">2048L</span>,</span>
 <span>  silently <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -124,12 +124,16 @@ given to the model.</p></dd>
 
 
 <dt id="arg-top-p">top.p<a class="anchor" aria-label="anchor" href="#arg-top-p"></a></dt>
-<dd><p>Numeric, default <code>1</code>. Top-p (nucleus) sampling parameter.</p></dd>
+<dd><p>Numeric or <code>NULL</code>, default <code>NULL</code>. Top-p (nucleus) sampling
+parameter. When <code>NULL</code>, it is not sent and the model's default is used.
+A warning is issued if set, since many models no longer accept it.</p></dd>
 
 
 <dt id="arg-temperature">temperature<a class="anchor" aria-label="anchor" href="#arg-temperature"></a></dt>
-<dd><p>Numeric, default <code>1</code>. Sampling temperature controlling
-response randomness.</p></dd>
+<dd><p>Numeric or <code>NULL</code>, default <code>NULL</code>. Sampling temperature
+controlling response randomness. When <code>NULL</code>, it is not sent and the model's
+default is used. A warning is issued if set, since many models no longer
+accept it.</p></dd>
 
 
 <dt id="arg-max-tokens">max.tokens<a class="anchor" aria-label="anchor" href="#arg-max-tokens"></a></dt>
@@ -152,7 +156,9 @@ containing:</p><ul><li><p><code>rep</code> — repetition index</p></li>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The function includes a retry mechanism (up to 5 attempts) for transient API
-failures. If all attempts fail, the function stops with an informative error.</p>
+failures. If all attempts fail, the function stops with an informative error.
+Errors that mention <code>temperature</code> or <code>top_p</code> are not retried, since the model
+is likely rejecting those parameters.</p>
     </div>
     <div class="section level2">
     <h2 id="important">Important<a class="anchor" aria-label="anchor" href="#important"></a></h2>

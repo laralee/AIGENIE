@@ -65,11 +65,11 @@ validate_user_input_local_AIGENIE(
 
 - temperature:
 
-  LLM temperature
+  LLM temperature (NULL uses the local model's default)
 
 - top.p:
 
-  LLM top-p sampling
+  LLM top-p sampling (NULL uses the local model's default)
 
 - target.N:
 

@@ -18,8 +18,8 @@ chat(
   groq.API = NULL,
   anthropic.API = NULL,
   reps = 1,
-  top.p = 1,
-  temperature = 1,
+  top.p = NULL,
+  temperature = NULL,
   max.tokens = 2048L,
   silently = FALSE
 )
@@ -75,12 +75,16 @@ chat(
 
 - top.p:
 
-  Numeric, default `1`. Top-p (nucleus) sampling parameter.
+  Numeric or `NULL`, default `NULL`. Top-p (nucleus) sampling parameter.
+  When `NULL`, it is not sent and the model's default is used. A warning
+  is issued if set, since many models no longer accept it.
 
 - temperature:
 
-  Numeric, default `1`. Sampling temperature controlling response
-  randomness.
+  Numeric or `NULL`, default `NULL`. Sampling temperature controlling
+  response randomness. When `NULL`, it is not sent and the model's
+  default is used. A warning is issued if set, since many models no
+  longer accept it.
 
 - max.tokens:
 
@@ -107,7 +111,8 @@ containing:
 
 The function includes a retry mechanism (up to 5 attempts) for transient
 API failures. If all attempts fail, the function stops with an
-informative error.
+informative error. Errors that mention `temperature` or `top_p` are not
+retried, since the model is likely rejecting those parameters.
 
 ## Important
 

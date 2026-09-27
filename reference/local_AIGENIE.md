@@ -13,8 +13,8 @@ local_AIGENIE(
   model.path,
   embedding.model = "bert-base-uncased",
   main.prompts = NULL,
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   target.N = NULL,
   domain = NULL,
   scale.title = NULL,
@@ -69,11 +69,13 @@ local_AIGENIE(
 
 - temperature:
 
-  LLM temperature for randomness (0-2, default: 1)
+  LLM temperature for randomness (0-2). Default NULL uses the local
+  model's (llama.cpp) default.
 
 - top.p:
 
-  Top-p nucleus sampling parameter (0-1, default: 1)
+  Top-p nucleus sampling parameter (0-1). Default NULL uses the local
+  model's (llama.cpp) default.
 
 - target.N:
 

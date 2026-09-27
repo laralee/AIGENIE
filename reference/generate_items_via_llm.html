@@ -87,11 +87,11 @@ Groq, and Anthropic models (local GGUF models are handled by
 
 
 <dt id="arg-top-p">top.p<a class="anchor" aria-label="anchor" href="#arg-top-p"></a></dt>
-<dd><p>Numeric. Nucleus sampling parameter</p></dd>
+<dd><p>Numeric or NULL. Nucleus sampling parameter (not sent when NULL)</p></dd>
 
 
 <dt id="arg-temperature">temperature<a class="anchor" aria-label="anchor" href="#arg-temperature"></a></dt>
-<dd><p>Numeric. Sampling temperature</p></dd>
+<dd><p>Numeric or NULL. Sampling temperature (not sent when NULL)</p></dd>
 
 
 <dt id="arg-adaptive">adaptive<a class="anchor" aria-label="anchor" href="#arg-adaptive"></a></dt>
@@ -120,7 +120,9 @@ Groq, and Anthropic models (local GGUF models are handled by
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with 'items' data frame and 'successful' flag</p>
+    <p>A list with 'items' data frame and 'successful' flag. Generation stops
+with an error on the first API error that mentions <code>temperature</code> or <code>top_p</code>,
+since retrying such a request cannot succeed.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

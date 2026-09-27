@@ -9,8 +9,8 @@ generate_text_openai(
   prompt,
   system.role = NULL,
   model = "gpt-4o",
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   max_tokens = 2048,
   api_key
 )
@@ -32,11 +32,11 @@ generate_text_openai(
 
 - temperature:
 
-  Numeric. Sampling temperature
+  Numeric or NULL. Sampling temperature (not sent when NULL)
 
 - top.p:
 
-  Numeric. Nucleus sampling parameter
+  Numeric or NULL. Nucleus sampling parameter (not sent when NULL)
 
 - max_tokens:
 

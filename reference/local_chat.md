@@ -16,8 +16,8 @@ local_chat(
   max.tokens = 1024,
   system.role = NULL,
   reps = 1,
-  temperature = 1,
-  top.p = 1,
+  temperature = NULL,
+  top.p = NULL,
   silently = FALSE
 )
 ```
@@ -66,12 +66,14 @@ local_chat(
 
 - temperature:
 
-  Numeric, default `1`. Sampling temperature controlling response
-  randomness.
+  Numeric or `NULL`, default `NULL`. Sampling temperature controlling
+  response randomness. `NULL` uses the local model's (llama.cpp)
+  default.
 
 - top.p:
 
-  Numeric, default `1`. Top-p (nucleus) sampling parameter.
+  Numeric or `NULL`, default `NULL`. Top-p (nucleus) sampling parameter.
+  `NULL` uses the local model's (llama.cpp) default.
 
 - silently:
 

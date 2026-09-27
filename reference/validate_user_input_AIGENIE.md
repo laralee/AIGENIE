@@ -85,11 +85,13 @@ validate_user_input_AIGENIE(
 
 - temperature:
 
-  A numeric value between 0 and 2.
+  NULL or a numeric value between 0 and 2. A warning is issued if set,
+  since many models no longer accept it.
 
 - top.p:
 
-  A numeric value between 0 and 1.
+  NULL or a numeric value between 0 and 1. A warning is issued if set,
+  since many models no longer accept it.
 
 - embedding.model:
 

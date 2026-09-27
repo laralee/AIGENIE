@@ -132,11 +132,13 @@ canonical model name using <code><a href="normalize_model_name.html">normalize_m
 
 
 <dt id="arg-temperature">temperature<a class="anchor" aria-label="anchor" href="#arg-temperature"></a></dt>
-<dd><p>A numeric value between 0 and 2.</p></dd>
+<dd><p>NULL or a numeric value between 0 and 2. A warning is issued
+if set, since many models no longer accept it.</p></dd>
 
 
 <dt id="arg-top-p">top.p<a class="anchor" aria-label="anchor" href="#arg-top-p"></a></dt>
-<dd><p>A numeric value between 0 and 1.</p></dd>
+<dd><p>NULL or a numeric value between 0 and 1. A warning is issued if
+set, since many models no longer accept it.</p></dd>
 
 
 <dt id="arg-embedding-model">embedding.model<a class="anchor" aria-label="anchor" href="#arg-embedding-model"></a></dt>

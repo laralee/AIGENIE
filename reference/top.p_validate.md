@@ -1,6 +1,7 @@
 # Validate `top.p` for Text Generation
 
-Ensures `top.p` is a numeric value between 0 and 1.
+Ensures `top.p` is NULL (not sent to the model) or a numeric value
+between 0 and 1.
 
 ## Usage
 
@@ -12,4 +13,4 @@ top.p_validate(top.p)
 
 - top.p:
 
-  A numeric value
+  A numeric value or NULL

@@ -32,6 +32,9 @@
 #' @param audience A string or NULL. The intended audience of the assessment.
 #' @param item.type.definitions A named list mapping item types to their descriptions.
 #'   Optional.
+#' @param item.attribute.definitions A named list mapping attributes (values within the
+#'   `item.attributes` sublists) to their descriptions. Not every attribute needs a
+#'   definition. Optional.
 #' @param response.options An atomic vector of strings listing the response options users will have.
 #'   Optional.
 #' @param prompt.notes A named list or string that gives the LLM additional instructions to be appended to the prompt.
@@ -55,6 +58,7 @@
 #'   \item{EGA.algorithm}{Canonical community detection algorithm}
 #'   \item{model}{Resolved model string for text generation}
 #'   \item{item.type.definitions}{Cleaned item type definitions (if provided)}
+#'   \item{item.attribute.definitions}{Cleaned item attribute definitions (if provided)}
 #'   \item{item.examples}{Cleaned item examples (if provided)}
 #'   \item{item.attributes}{Cleaned and normalized item attributes}
 #'   \item{prompt.notes}{Cleaned and normalized prompt notes (if provided)}
@@ -82,7 +86,8 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
                                         model, temperature,
                                         top.p, embedding.model, target.N,
                                         domain, scale.title, item.examples,
-                                        audience, item.type.definitions, response.options,
+                                        audience, item.type.definitions,
+                                        item.attribute.definitions = NULL, response.options,
                                         prompt.notes,
                                         system.role, EGA.model, EGA.algorithm,
                                         EGA.uni.method, keep.org, items.only,
@@ -118,6 +123,12 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
   # Validate the `item.type.definitions` object based on `item.attributes`
   if(!is.null(item.type.definitions)){ # only run the check if user provided
     item.type.definitions <- item.type.definitions_validate(item.type.definitions, item.attributes)
+  }
+
+  # Validate the `item.attribute.definitions` object based on `item.attributes`
+  if(!is.null(item.attribute.definitions)){ # only run the check if user provided
+    item.attribute.definitions <- item.attribute.definitions_validate(item.attribute.definitions,
+                                                                      item.attributes)
   }
 
   # Validate the `model` string and replace it with a valid model string if necessary
@@ -171,6 +182,7 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
     EGA.algorithm = EGA.algorithm,
     model = model,
     item.type.definitions = item.type.definitions,
+    item.attribute.definitions = item.attribute.definitions,
     item.examples = item.examples,
     item.attributes = item.attributes,
     prompt.notes = prompt.notes,
@@ -202,6 +214,7 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
 #' @param item.examples Example items
 #' @param audience Target audience
 #' @param item.type.definitions Type definitions
+#' @param item.attribute.definitions Attribute definitions (named by attribute; optional)
 #' @param response.options Response scale options
 #' @param prompt.notes Additional prompt instructions
 #' @param system.role System prompt
@@ -232,7 +245,8 @@ validate_user_input_AIGENIE <- function(item.attributes, openai.API, hf.token,
 validate_user_input_local_AIGENIE <- function(
   item.attributes, model.path, embedding.model, main.prompts,
   temperature, top.p, target.N, domain, scale.title, item.examples,
-  audience, item.type.definitions, response.options, prompt.notes,
+  audience, item.type.definitions, item.attribute.definitions = NULL,
+  response.options, prompt.notes,
   system.role, EGA.model, EGA.algorithm, EGA.uni.method, n.ctx,
   n.gpu.layers, max.tokens, device, batch.size, pooling.strategy,
   max.length, keep.org, items.only, embeddings.only, adaptive,
@@ -261,6 +275,11 @@ validate_user_input_local_AIGENIE <- function(
 
   if (!is.null(item.type.definitions)) {
     item.type.definitions <- item.type.definitions_validate(item.type.definitions, item.attributes)
+  }
+
+  if (!is.null(item.attribute.definitions)) {
+    item.attribute.definitions <- item.attribute.definitions_validate(item.attribute.definitions,
+                                                                      item.attributes)
   }
 
   # 6. Validate EGA parameters (and run flags)
@@ -326,6 +345,7 @@ validate_user_input_local_AIGENIE <- function(
     # Content parameters
     target.N = target.N,
     item.type.definitions = item.type.definitions,
+    item.attribute.definitions = item.attribute.definitions,
     item.examples = item.examples,
     prompt.notes = prompt.notes,
     main.prompts = main.prompts,

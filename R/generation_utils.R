@@ -73,6 +73,8 @@ create_system.role <- function(domain, scale.title, audience,
 #'
 #' @param item.attributes A named list where each element is a character vector of attribute names for an item type.
 #' @param item.type.definitions (Optional) A named list of textual definitions for each item type, used to provide conceptual clarity in the prompt.
+#' @param item.attribute.definitions (Optional) A named list of textual definitions for some or all attributes. Definitions
+#'   for an item type's attributes are inserted immediately after that type's attribute list.
 #' @param domain (Optional) A string specifying the domain (e.g., "psychological", "clinical") the items belong to.
 #' @param scale.title (Optional) The title of the scale (e.g., "Emotion Regulation Inventory").
 #' @param prompt.notes (Optional) A named list of additional instructions or warnings to include per item type.
@@ -84,6 +86,7 @@ create_system.role <- function(domain, scale.title, audience,
 #'
 #' @keywords internal
 create_main.prompts <- function(item.attributes, item.type.definitions,
+                                item.attribute.definitions = NULL,
                                 domain, scale.title, prompt.notes,
                                 audience, item.examples){
   item_types <- names(item.attributes)
@@ -120,6 +123,14 @@ create_main.prompts <- function(item.attributes, item.type.definitions,
       definition <- paste0("The precise definition of '", current_type, "' in this context is as follows: ", definition, "\n")
     }
 
+    # Retrieve definitions for any of this type's attributes, if provided
+    attribute_definitions <- construct_item.attribute.definitions_string(
+      attributes, item.attribute.definitions
+    )
+    if (attribute_definitions != "") {
+      attribute_definitions <- paste0(attribute_definitions, " ")
+    }
+
     if(is.data.frame(item.examples)){
       examples_str <- construct_item.examples_string_for_prompt(item.examples, current_type)
     } else {
@@ -143,7 +154,7 @@ create_main.prompts <- function(item.attributes, item.type.definitions,
       ifelse(is.null(audience), "", paste0("This inventory will be administered to an audience of ", audience, ". ")),
       "Write items related to the attributes of the item type '", current_type, ".' ", definition,
       "Here are the attributes of the item type '", current_type, "': ", numbered,
-      ". Generate EXACTLY TWO items PER attribute. Use the ",length(attributes)," attributes EXACTLY as provided; do NOT add your own or leave any out." ,
+      ". ", attribute_definitions, "Generate EXACTLY TWO items PER attribute. Use the ",length(attributes)," attributes EXACTLY as provided; do NOT add your own or leave any out." ,
       "\nEACH item should be ROBUST, NOVEL, and UNIQUE. These items must be top-quality.\n",
       "Ensure that each item is extremely high-quality, psychometrically robust, and concise.",
       " Each item should be novel, so be creative; aim for BREADTH across these attributes,",
@@ -170,6 +181,41 @@ create_main.prompts <- function(item.attributes, item.type.definitions,
   }
 
   return(main.prompts)
+}
+
+
+#' Construct the Attribute Definitions Sentence for Prompts
+#'
+#' Builds a single sentence listing the user-supplied definitions for the
+#' given attributes, numbered in the order the attributes are listed. Attributes
+#' without a definition are skipped.
+#'
+#' @param attributes A character vector of (normalized) attributes for one item type.
+#' @param item.attribute.definitions A validated named list of attribute
+#'   definitions, or NULL.
+#'
+#' @return A single string such as
+#'   `"Here are the precise definitions of some of these attributes in this context: (1) worry: <def>; (2) sadness: <def>."`,
+#'   or `""` if none of `attributes` has a definition.
+#'
+#' @keywords internal
+construct_item.attribute.definitions_string <- function(attributes, item.attribute.definitions) {
+
+  if (is.null(item.attribute.definitions)) return("")
+
+  defined <- attributes[attributes %in% names(item.attribute.definitions)]
+  if (length(defined) == 0) return("")
+
+  # Drop trailing sentence punctuation so the list reads cleanly
+  defs <- vapply(defined, function(a) {
+    sub("[.;[:space:]]+$", "", item.attribute.definitions[[a]])
+  }, character(1))
+
+  paste0(
+    "Here are the precise definitions of some of these attributes in this context: ",
+    paste0("(", seq_along(defined), ") ", defined, ": ", defs, collapse = "; "),
+    "."
+  )
 }
 
 
@@ -215,6 +261,8 @@ construct_item.examples_string_for_prompt <- function(item.examples, current_typ
 #' @param main.prompts A named list of character strings, where each element is a prompt associated with an item type.
 #' @param item.attributes A named list where each element is a character vector of attribute names for an item type.
 #' @param item.type.definitions (Optional) A named list of definitions corresponding to each item type. Used to append conceptual clarity.
+#' @param item.attribute.definitions (Optional) A named list of definitions for some or all attributes. Definitions for an
+#'   item type's attributes are appended after the item type definition, if not already present.
 #' @param domain (Optional) A string describing the content domain (e.g., "psychological", "clinical"). Included in the prompt if not already present.
 #' @param scale.title (Optional) The name of the scale (e.g., "Social Anxiety Scale") for which items are being generated.
 #' @param prompt.notes (Optional) A named list of author-supplied notes for each item type that should be emphasized in the prompt.
@@ -226,6 +274,7 @@ construct_item.examples_string_for_prompt <- function(item.examples, current_typ
 #' @keywords internal
 modify_main.prompts <- function(main.prompts, item.attributes,
                                 item.type.definitions,
+                                item.attribute.definitions = NULL,
                                 domain, scale.title, prompt.notes,
                                 audience, item.examples) {
 
@@ -279,6 +328,15 @@ modify_main.prompts <- function(main.prompts, item.attributes,
       }
     }
 
+    # ATTRIBUTE DEFINITIONS
+    attribute_definitions <- ""
+    attr_def_sentence <- construct_item.attribute.definitions_string(
+      item.attributes[[current_type]], item.attribute.definitions
+    )
+    if (attr_def_sentence != "" && !already_present(prompt, attr_def_sentence)) {
+      attribute_definitions <- paste0(" ", attr_def_sentence, "\n")
+    }
+
     # EXAMPLES
     examples_str <- NULL
     if (is.data.frame(item.examples)) {
@@ -322,6 +380,7 @@ modify_main.prompts <- function(main.prompts, item.attributes,
     additional_statement <- paste0(
       if (length(additions)) paste0(paste(additions, collapse = " "), "\n") else "",
       definition,
+      attribute_definitions,
       json_format_str,
       examples_section,
       notes_section

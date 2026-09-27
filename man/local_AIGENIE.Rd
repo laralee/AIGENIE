@@ -17,6 +17,7 @@ local_AIGENIE(
   item.examples = NULL,
   audience = NULL,
   item.type.definitions = NULL,
+  item.attribute.definitions = NULL,
   response.options = NULL,
   prompt.notes = NULL,
   system.role = NULL,
@@ -67,6 +68,10 @@ local_AIGENIE(
 \item{audience}{Target population}
 
 \item{item.type.definitions}{Definitions for item types}
+
+\item{item.attribute.definitions}{Named list of definitions for some or all attributes
+(names must match attributes within the \code{item.attributes} sublists). See
+\code{\link{AIGENIE}} for details.}
 
 \item{response.options}{Response scale labels}
 

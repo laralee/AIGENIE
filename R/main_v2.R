@@ -125,6 +125,16 @@
 #'   it will be used to construct appropriate prompts and system roles unless `system.role`
 #'   is provided.
 #'
+#' @param item.attribute.definitions A named list of character strings or NULL (optional,
+#'   default: NULL). Provides definitions or descriptions of individual attributes for the
+#'   LLM. Each name must match an attribute listed within the `item.attributes` sublists
+#'   (not `names(item.attributes)`), and each value must be a single non-empty string. Not
+#'   every attribute needs a definition; users may define only the more complex or
+#'   ambiguous ones. If an attribute appears under more than one item type, its definition
+#'   is used for every item type that lists it. Definitions are inserted into the prompt
+#'   immediately after the item type's attributes are listed (or, with custom
+#'   `main.prompts`, appended to the prompt).
+#'
 #' @param response.options A character vector or NULL (optional, default: NULL). Specifies
 #'   the response scale labels for the generated items (e.g., c("agree", "neither agree
 #'   nor disagree", "disagree")). These labels provide context for item writing but do
@@ -572,6 +582,7 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
                        # Prompt parameters
                        domain = NULL, scale.title = NULL, item.examples = NULL,
                        audience = NULL, item.type.definitions = NULL,
+                       item.attribute.definitions = NULL,
                        response.options = NULL, prompt.notes = NULL, system.role = NULL,
 
                        # EGA parameters
@@ -623,6 +634,7 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
                                             top.p, embedding.model, target.N,
                                             domain, scale.title, item.examples,
                                             audience, item.type.definitions,
+                                            item.attribute.definitions,
                                             response.options, prompt.notes,
                                             system.role, EGA.model, EGA.algorithm,
                                             EGA.uni.method, keep.org, items.only,
@@ -636,6 +648,7 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
   EGA.algorithm <- validation$EGA.algorithm
   model <- validation$model
   item.type.definitions <- validation$item.type.definitions
+  item.attribute.definitions <- validation$item.attribute.definitions
   item.examples <- validation$item.examples
   item.attributes <- validation$item.attributes
   prompt.notes <- validation$prompt.notes
@@ -654,11 +667,13 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
   # Create/Modify the prompts
   if(!custom){
     main.prompts <- create_main.prompts(item.attributes, item.type.definitions,
+                                        item.attribute.definitions,
                                       domain, scale.title, prompt.notes,
                                       audience, item.examples)
   } else {
     main.prompts <- modify_main.prompts(main.prompts, item.attributes,
                                         item.type.definitions,
+                                        item.attribute.definitions,
                                         domain, scale.title, prompt.notes,
                                         audience, item.examples)
 
@@ -673,7 +688,7 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
   success <- items_gen$successful
 
   if(is.data.frame(items)){
-    items$ID <- 1:nrow(items) # create an ID variable
+    items$ID <- seq_len(nrow(items)) # create an ID variable
   }
 
   # return items if requested OR if the run was not a success
@@ -819,6 +834,9 @@ AIGENIE <- function(item.attributes, openai.API=NULL, hf.token=NULL, # required 
 #' @param item.examples Data frame of example items
 #' @param audience Target population
 #' @param item.type.definitions Definitions for item types
+#' @param item.attribute.definitions Named list of definitions for some or all attributes
+#'   (names must match attributes within the `item.attributes` sublists). See
+#'   \code{\link{AIGENIE}} for details.
 #' @param response.options Response scale labels
 #' @param prompt.notes Additional instructions for generation
 #' @param system.role Custom system prompt
@@ -956,6 +974,7 @@ local_AIGENIE <- function(
   item.examples = NULL,
   audience = NULL,
   item.type.definitions = NULL,
+  item.attribute.definitions = NULL,
   response.options = NULL,
   prompt.notes = NULL,
   system.role = NULL,
@@ -1019,7 +1038,8 @@ local_AIGENIE <- function(
   validation <- validate_user_input_local_AIGENIE(
     item.attributes, model.path, embedding.model, main.prompts,
     temperature, top.p, target.N, domain, scale.title, item.examples,
-    audience, item.type.definitions, response.options, prompt.notes,
+    audience, item.type.definitions, item.attribute.definitions,
+    response.options, prompt.notes,
     system.role, EGA.model, EGA.algorithm, EGA.uni.method, n.ctx,
     n.gpu.layers, max.tokens, device, batch.size, pooling.strategy,
     max.length, keep.org, items.only, embeddings.only, adaptive,
@@ -1032,6 +1052,7 @@ local_AIGENIE <- function(
   EGA.uni.method <- validation$EGA.uni.method
   EGA.algorithm <- validation$EGA.algorithm
   item.type.definitions <- validation$item.type.definitions
+  item.attribute.definitions <- validation$item.attribute.definitions
   item.examples <- validation$item.examples
   item.attributes <- validation$item.attributes
   prompt.notes <- validation$prompt.notes
@@ -1061,11 +1082,13 @@ local_AIGENIE <- function(
 
   if (!custom) {
     main.prompts <- create_main.prompts(item.attributes, item.type.definitions,
+                                        item.attribute.definitions,
                                         domain, scale.title, prompt.notes,
                                         audience, item.examples)
   } else {
     main.prompts <- modify_main.prompts(main.prompts, item.attributes,
                                         item.type.definitions,
+                                        item.attribute.definitions,
                                         domain, scale.title, prompt.notes,
                                         audience, item.examples)
   }
@@ -1086,7 +1109,7 @@ local_AIGENIE <- function(
   success <- items_gen$successful
 
   if (is.data.frame(items)) {
-    items$ID <- 1:nrow(items)  # Add ID column
+    items$ID <- seq_len(nrow(items))  # Add ID column
   }
 
   # Return if items only requested or generation failed

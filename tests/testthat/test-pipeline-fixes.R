@@ -117,3 +117,34 @@ test_that("AIGENIE returns type-level results when the overall fit fails silentl
     expect_identical(res, type_level, info = paste("silently =", quiet))
   }
 })
+
+
+test_that("AIGENIE and local_AIGENIE handle zero generated items without error", {
+
+  empty_items <- data.frame(
+    type = character(), attribute = character(), statement = character(),
+    stringsAsFactors = FALSE
+  )
+
+  local_mocked_bindings(
+    generate_items_via_llm = function(...) list(items = empty_items, successful = TRUE),
+    generate_items_via_local_llm = function(...) list(items = empty_items, successful = TRUE),
+    validate_model.path = function(model.path, silently) model.path,
+    check_local_llm_setup = function(...) TRUE,
+    .package = "AIGENIE"
+  )
+
+  res <- AIGENIE(
+    item.attributes = test_attributes, openai.API = "fake-key-for-test",
+    items.only = TRUE, target.N = 30, silently = TRUE
+  )
+  expect_equal(nrow(res), 0L)
+  expect_true("ID" %in% names(res))
+
+  res_local <- local_AIGENIE(
+    item.attributes = test_attributes, model.path = "fake-model.gguf",
+    items.only = TRUE, target.N = 30, silently = TRUE
+  )
+  expect_equal(nrow(res_local), 0L)
+  expect_true("ID" %in% names(res_local))
+})

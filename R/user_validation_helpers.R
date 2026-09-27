@@ -456,6 +456,116 @@ item.type.definitions_validate <- function(item.type.definitions, items.attribut
   return(cleaned)
 }
 
+# Validate `item.attribute.definitions` ----
+#' Validate and Clean `item.attribute.definitions`
+#'
+#' Validates that `item.attribute.definitions` is a named list where:
+#'   - Names are unique (after trim + case-fold)
+#'   - Names exist among the attributes listed in `items.attributes` (i.e., the
+#'     values of its sublists, not `names(items.attributes)`)
+#'   - Values are non-empty strings
+#'
+#' Not every attribute needs a definition; users may define only a subset.
+#'
+#' Returns a cleaned version with:
+#'   - Normalized names (trimmed and lowercased)
+#'   - Trimmed values (case preserved)
+#'
+#' @param item.attribute.definitions A named list of strings, where each name
+#'   must correspond to an attribute in one of the `items.attributes` sublists
+#'   and each value must be a non-empty string.
+#' @param items.attributes A cleaned list from `items.attributes_validate()`.
+#'
+#' @return A cleaned version of `item.attribute.definitions`.
+#' @keywords internal
+item.attribute.definitions_validate <- function(item.attribute.definitions, items.attributes) {
+  norm_str <- function(x) trimws(tolower(x))
+  trim_str <- function(x) trimws(x)
+
+  # ---- Check type ----
+  if (!is.list(item.attribute.definitions)) {
+    stop(
+      "AI-GENIE expects item.attribute.definitions to be a named list.",
+      call. = FALSE
+    )
+  }
+
+  names_raw <- names(item.attribute.definitions)
+  if (is.null(names_raw) || any(is.na(names_raw)) || any(names_raw == "")) {
+    stop(
+      "AI-GENIE expects item.attribute.definitions to have non-empty names.",
+      call. = FALSE
+    )
+  }
+
+  names_norm <- norm_str(names_raw)
+
+  # ---- Check name uniqueness ----
+  if (any(duplicated(names_norm))) {
+    dups <- unique(names_norm[duplicated(names_norm)])
+    msg_lines <- lapply(dups, function(key) {
+      originals <- names_raw[names_norm == key]
+      paste0("* Names ", paste(sprintf("`%s`", originals), collapse = ", "),
+             " normalize to `", key, "`")
+    })
+    stop(
+      paste0(
+        "AI-GENIE expects item.attribute.definitions to have unique names after trimming and case-folding.\n",
+        "The following names collide:\n",
+        paste(unlist(msg_lines), collapse = "\n")
+      ),
+      call. = FALSE
+    )
+  }
+
+  # ---- Check names match an attribute within items.attributes ----
+  known_attributes <- unique(unlist(items.attributes, use.names = FALSE))
+  unknown_names <- setdiff(names_norm, known_attributes)
+  if (length(unknown_names) > 0) {
+    offending <- names_raw[names_norm %in% unknown_names]
+    stop(
+      paste0(
+        "AI-GENIE expects every name in item.attribute.definitions to match an attribute listed in ",
+        "items.attributes (after trimming and case-folding). Invalid name(s): ",
+        paste(sprintf("`%s`", offending), collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+
+  # ---- Validate values ----
+  cleaned <- list()
+  for (i in seq_along(item.attribute.definitions)) {
+    value <- item.attribute.definitions[[i]]
+    name_norm <- names_norm[i]
+
+    if (!is.character(value) || length(value) != 1 || is.na(value)) {
+      stop(
+        paste0(
+          "AI-GENIE expects item.attribute.definitions$", names_raw[i],
+          " to be a non-empty string."
+        ),
+        call. = FALSE
+      )
+    }
+
+    val_trim <- trim_str(value)
+    if (val_trim == "") {
+      stop(
+        paste0(
+          "AI-GENIE expects item.attribute.definitions$", names_raw[i],
+          " to be a non-empty string (after trimming)."
+        ),
+        call. = FALSE
+      )
+    }
+
+    cleaned[[name_norm]] <- val_trim
+  }
+
+  return(cleaned)
+}
+
 # Validate embedding model and model ----
 
 #' Resolve and Normalize Model Name

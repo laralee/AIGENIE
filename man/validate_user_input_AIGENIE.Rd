@@ -22,6 +22,7 @@ validate_user_input_AIGENIE(
   item.examples,
   audience,
   item.type.definitions,
+  item.attribute.definitions = NULL,
   response.options,
   prompt.notes,
   system.role,
@@ -81,6 +82,10 @@ All values must be strings. Optional.}
 \item{item.type.definitions}{A named list mapping item types to their descriptions.
 Optional.}
 
+\item{item.attribute.definitions}{A named list mapping attributes (values within the
+\code{item.attributes} sublists) to their descriptions. Not every attribute needs a
+definition. Optional.}
+
 \item{response.options}{An atomic vector of strings listing the response options users will have.
 Optional.}
 
@@ -122,6 +127,7 @@ A named list containing:
 \item{EGA.algorithm}{Canonical community detection algorithm}
 \item{model}{Resolved model string for text generation}
 \item{item.type.definitions}{Cleaned item type definitions (if provided)}
+\item{item.attribute.definitions}{Cleaned item attribute definitions (if provided)}
 \item{item.examples}{Cleaned item examples (if provided)}
 \item{item.attributes}{Cleaned and normalized item attributes}
 \item{prompt.notes}{Cleaned and normalized prompt notes (if provided)}

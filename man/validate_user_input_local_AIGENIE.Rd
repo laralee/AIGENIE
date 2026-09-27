@@ -17,6 +17,7 @@ validate_user_input_local_AIGENIE(
   item.examples,
   audience,
   item.type.definitions,
+  item.attribute.definitions = NULL,
   response.options,
   prompt.notes,
   system.role,
@@ -64,6 +65,8 @@ validate_user_input_local_AIGENIE(
 \item{audience}{Target audience}
 
 \item{item.type.definitions}{Type definitions}
+
+\item{item.attribute.definitions}{Attribute definitions (named by attribute; optional)}
 
 \item{response.options}{Response scale options}
 

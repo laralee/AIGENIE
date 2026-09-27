@@ -8,6 +8,7 @@ modify_main.prompts(
   main.prompts,
   item.attributes,
   item.type.definitions,
+  item.attribute.definitions = NULL,
   domain,
   scale.title,
   prompt.notes,
@@ -21,6 +22,9 @@ modify_main.prompts(
 \item{item.attributes}{A named list where each element is a character vector of attribute names for an item type.}
 
 \item{item.type.definitions}{(Optional) A named list of definitions corresponding to each item type. Used to append conceptual clarity.}
+
+\item{item.attribute.definitions}{(Optional) A named list of definitions for some or all attributes. Definitions for an
+item type's attributes are appended after the item type definition, if not already present.}
 
 \item{domain}{(Optional) A string describing the content domain (e.g., "psychological", "clinical"). Included in the prompt if not already present.}
 

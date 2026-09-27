@@ -7,6 +7,7 @@
 create_main.prompts(
   item.attributes,
   item.type.definitions,
+  item.attribute.definitions = NULL,
   domain,
   scale.title,
   prompt.notes,
@@ -18,6 +19,9 @@ create_main.prompts(
 \item{item.attributes}{A named list where each element is a character vector of attribute names for an item type.}
 
 \item{item.type.definitions}{(Optional) A named list of textual definitions for each item type, used to provide conceptual clarity in the prompt.}
+
+\item{item.attribute.definitions}{(Optional) A named list of textual definitions for some or all attributes. Definitions
+for an item type's attributes are inserted immediately after that type's attribute list.}
 
 \item{domain}{(Optional) A string specifying the domain (e.g., "psychological", "clinical") the items belong to.}
 

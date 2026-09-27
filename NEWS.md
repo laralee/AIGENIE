@@ -1,6 +1,9 @@
 # AIGENIE 2.1.2
 
 ## New features
+- Added `item.attribute.definitions` to `AIGENIE()` and `local_AIGENIE()`: an
+  optional named list of definitions for some or all attributes, inserted into
+  the generation prompt immediately after each item type's attribute list.
 - Exposed `boot.iter` and `ncores` in `AIGENIE()`, `GENIE()`, `local_AIGENIE()`, and `local_GENIE()`. The `boot.iter` default remains 500, matching the current reduction pipeline; `ncores = NULL` preserves EGAnet's existing default core behavior.
 - Added a publication-ready `filtering_audit` with item-level filtering
   provenance for UVA and bootEGA decisions.
@@ -18,6 +21,8 @@
   original `type` and `attribute` labels.
 - `AIGENIE()` now returns the type-level results when the `run.overall` fit
   fails, even when `silently = TRUE`.
+- `AIGENIE()` and `local_AIGENIE()` no longer error when item generation
+  returns zero items.
 
 ## Documentation
 - Corrected stale function documentation, including the structure of the

@@ -12,6 +12,7 @@ instructions.
 create_main.prompts(
   item.attributes,
   item.type.definitions,
+  item.attribute.definitions = NULL,
   domain,
   scale.title,
   prompt.notes,
@@ -31,6 +32,12 @@ create_main.prompts(
 
   (Optional) A named list of textual definitions for each item type,
   used to provide conceptual clarity in the prompt.
+
+- item.attribute.definitions:
+
+  (Optional) A named list of textual definitions for some or all
+  attributes. Definitions for an item type's attributes are inserted
+  immediately after that type's attribute list.
 
 - domain:
 

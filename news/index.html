@@ -46,7 +46,8 @@
 <h2 class="pkg-version" data-toc-text="2.1.2" id="aigenie-212">AIGENIE 2.1.2<a class="anchor" aria-label="anchor" href="#aigenie-212"></a></h2><p class="text-muted">CRAN release: 2026-09-08</p>
 <div class="section level3">
 <h3 id="new-features-2-1-2">New features<a class="anchor" aria-label="anchor" href="#new-features-2-1-2"></a></h3>
-<ul><li>Exposed <code>boot.iter</code> and <code>ncores</code> in <code><a href="../reference/AIGENIE.html">AIGENIE()</a></code>, <code><a href="../reference/GENIE.html">GENIE()</a></code>, <code><a href="../reference/local_AIGENIE.html">local_AIGENIE()</a></code>, and <code><a href="../reference/local_GENIE.html">local_GENIE()</a></code>. The <code>boot.iter</code> default remains 500, matching the current reduction pipeline; <code>ncores = NULL</code> preserves EGAnet’s existing default core behavior.</li>
+<ul><li>Added <code>item.attribute.definitions</code> to <code><a href="../reference/AIGENIE.html">AIGENIE()</a></code> and <code><a href="../reference/local_AIGENIE.html">local_AIGENIE()</a></code>: an optional named list of definitions for some or all attributes, inserted into the generation prompt immediately after each item type’s attribute list.</li>
+<li>Exposed <code>boot.iter</code> and <code>ncores</code> in <code><a href="../reference/AIGENIE.html">AIGENIE()</a></code>, <code><a href="../reference/GENIE.html">GENIE()</a></code>, <code><a href="../reference/local_AIGENIE.html">local_AIGENIE()</a></code>, and <code><a href="../reference/local_GENIE.html">local_GENIE()</a></code>. The <code>boot.iter</code> default remains 500, matching the current reduction pipeline; <code>ncores = NULL</code> preserves EGAnet’s existing default core behavior.</li>
 <li>Added a publication-ready <code>filtering_audit</code> with item-level filtering provenance for UVA and bootEGA decisions.</li>
 <li>Added per-type <code>reduction_summary</code> outputs.</li>
 <li>Added pre-reduction network-loading diagnostics for filtered items.</li>
@@ -60,6 +61,8 @@
 <li>With <code>all.together = TRUE</code>, <code>final_items</code> (and <code>initial_items</code> when <code>keep.org = TRUE</code>) now retain the <code>EGA_com</code> community column alongside the original <code>type</code> and <code>attribute</code> labels.</li>
 <li>
 <code><a href="../reference/AIGENIE.html">AIGENIE()</a></code> now returns the type-level results when the <code>run.overall</code> fit fails, even when <code>silently = TRUE</code>.</li>
+<li>
+<code><a href="../reference/AIGENIE.html">AIGENIE()</a></code> and <code><a href="../reference/local_AIGENIE.html">local_AIGENIE()</a></code> no longer error when item generation returns zero items.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-2-1-2">Documentation<a class="anchor" aria-label="anchor" href="#documentation-2-1-2"></a></h3>

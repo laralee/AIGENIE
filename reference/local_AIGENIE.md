@@ -21,6 +21,7 @@ local_AIGENIE(
   item.examples = NULL,
   audience = NULL,
   item.type.definitions = NULL,
+  item.attribute.definitions = NULL,
   response.options = NULL,
   prompt.notes = NULL,
   system.role = NULL,
@@ -97,6 +98,13 @@ local_AIGENIE(
 - item.type.definitions:
 
   Definitions for item types
+
+- item.attribute.definitions:
+
+  Named list of definitions for some or all attributes (names must match
+  attributes within the `item.attributes` sublists). See
+  [`AIGENIE`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md)
+  for details.
 
 - response.options:
 

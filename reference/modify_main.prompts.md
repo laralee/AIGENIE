@@ -15,6 +15,7 @@ modify_main.prompts(
   main.prompts,
   item.attributes,
   item.type.definitions,
+  item.attribute.definitions = NULL,
   domain,
   scale.title,
   prompt.notes,
@@ -39,6 +40,12 @@ modify_main.prompts(
 
   (Optional) A named list of definitions corresponding to each item
   type. Used to append conceptual clarity.
+
+- item.attribute.definitions:
+
+  (Optional) A named list of definitions for some or all attributes.
+  Definitions for an item type's attributes are appended after the item
+  type definition, if not already present.
 
 - domain:
 

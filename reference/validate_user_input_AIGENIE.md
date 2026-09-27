@@ -26,6 +26,7 @@ validate_user_input_AIGENIE(
   item.examples,
   audience,
   item.type.definitions,
+  item.attribute.definitions = NULL,
   response.options,
   prompt.notes,
   system.role,
@@ -122,6 +123,12 @@ validate_user_input_AIGENIE(
 
   A named list mapping item types to their descriptions. Optional.
 
+- item.attribute.definitions:
+
+  A named list mapping attributes (values within the `item.attributes`
+  sublists) to their descriptions. Not every attribute needs a
+  definition. Optional.
+
 - response.options:
 
   An atomic vector of strings listing the response options users will
@@ -209,6 +216,10 @@ A named list containing:
 - item.type.definitions:
 
   Cleaned item type definitions (if provided)
+
+- item.attribute.definitions:
+
+  Cleaned item attribute definitions (if provided)
 
 - item.examples:
 

@@ -20,6 +20,7 @@
 <url><loc>https://laralee.github.io/AIGENIE/reference/cleaning_function.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/clear_pytorch_environment.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/combine_filtering_audits.html</loc></url>
+<url><loc>https://laralee.github.io/AIGENIE/reference/construct_item.attribute.definitions_string.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/construct_item.examples_string.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/construct_item.examples_string_for_prompt.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/create_aigenie_env.html</loc></url>
@@ -62,6 +63,7 @@
 <url><loc>https://laralee.github.io/AIGENIE/reference/install_aigenie_packages.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/install_gpu_support.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/install_local_llm_support.html</loc></url>
+<url><loc>https://laralee.github.io/AIGENIE/reference/item.attribute.definitions_validate.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/item.examples_validate.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/item.type.definitions_validate.html</loc></url>
 <url><loc>https://laralee.github.io/AIGENIE/reference/items.attributes_validate.html</loc></url>

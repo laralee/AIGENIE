@@ -73,6 +73,7 @@ attribute structures, and ensures consistency across all interdependent componen
 <span>  <span class="va">item.examples</span>,</span>
 <span>  <span class="va">audience</span>,</span>
 <span>  <span class="va">item.type.definitions</span>,</span>
+<span>  item.attribute.definitions <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">response.options</span>,</span>
 <span>  <span class="va">prompt.notes</span>,</span>
 <span>  <span class="va">system.role</span>,</span>
@@ -170,6 +171,12 @@ All values must be strings. Optional.</p></dd>
 Optional.</p></dd>
 
 
+<dt id="arg-item-attribute-definitions">item.attribute.definitions<a class="anchor" aria-label="anchor" href="#arg-item-attribute-definitions"></a></dt>
+<dd><p>A named list mapping attributes (values within the
+<code>item.attributes</code> sublists) to their descriptions. Not every attribute needs a
+definition. Optional.</p></dd>
+
+
 <dt id="arg-response-options">response.options<a class="anchor" aria-label="anchor" href="#arg-response-options"></a></dt>
 <dd><p>An atomic vector of strings listing the response options users will have.
 Optional.</p></dd>
@@ -249,6 +256,9 @@ together rather than separately.</p></dd>
 
 <dt>item.type.definitions</dt>
 <dd><p>Cleaned item type definitions (if provided)</p></dd>
+
+<dt>item.attribute.definitions</dt>
+<dd><p>Cleaned item attribute definitions (if provided)</p></dd>
 
 <dt>item.examples</dt>
 <dd><p>Cleaned item examples (if provided)</p></dd>

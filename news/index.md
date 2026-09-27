@@ -6,6 +6,13 @@ CRAN release: 2026-09-08
 
 ### New features
 
+- Added `item.attribute.definitions` to
+  [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md)
+  and
+  [`local_AIGENIE()`](https://laralee.github.io/AIGENIE/reference/local_AIGENIE.md):
+  an optional named list of definitions for some or all attributes,
+  inserted into the generation prompt immediately after each item type’s
+  attribute list.
 - Exposed `boot.iter` and `ncores` in
   [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md),
   [`GENIE()`](https://laralee.github.io/AIGENIE/reference/GENIE.md),
@@ -37,6 +44,10 @@ CRAN release: 2026-09-08
 - [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md)
   now returns the type-level results when the `run.overall` fit fails,
   even when `silently = TRUE`.
+- [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md)
+  and
+  [`local_AIGENIE()`](https://laralee.github.io/AIGENIE/reference/local_AIGENIE.md)
+  no longer error when item generation returns zero items.
 
 ### Documentation
 

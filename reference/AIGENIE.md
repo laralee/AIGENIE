@@ -32,6 +32,7 @@ AIGENIE(
   item.examples = NULL,
   audience = NULL,
   item.type.definitions = NULL,
+  item.attribute.definitions = NULL,
   response.options = NULL,
   prompt.notes = NULL,
   system.role = NULL,
@@ -232,6 +233,19 @@ AIGENIE(
   type or construct in your specific context. If supplied, it will be
   used to construct appropriate prompts and system roles unless
   `system.role` is provided.
+
+- item.attribute.definitions:
+
+  A named list of character strings or NULL (optional, default: NULL).
+  Provides definitions or descriptions of individual attributes for the
+  LLM. Each name must match an attribute listed within the
+  `item.attributes` sublists (not `names(item.attributes)`), and each
+  value must be a single non-empty string. Not every attribute needs a
+  definition; users may define only the more complex or ambiguous ones.
+  If an attribute appears under more than one item type, its definition
+  is used for every item type that lists it. Definitions are inserted
+  into the prompt immediately after the item type's attributes are
+  listed (or, with custom `main.prompts`, appended to the prompt).
 
 - response.options:
 

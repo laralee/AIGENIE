@@ -65,6 +65,7 @@ critical author notes – but only if these elements are not already present in 
 <span>  <span class="va">main.prompts</span>,</span>
 <span>  <span class="va">item.attributes</span>,</span>
 <span>  <span class="va">item.type.definitions</span>,</span>
+<span>  item.attribute.definitions <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">domain</span>,</span>
 <span>  <span class="va">scale.title</span>,</span>
 <span>  <span class="va">prompt.notes</span>,</span>
@@ -87,6 +88,11 @@ critical author notes – but only if these elements are not already present in 
 
 <dt id="arg-item-type-definitions">item.type.definitions<a class="anchor" aria-label="anchor" href="#arg-item-type-definitions"></a></dt>
 <dd><p>(Optional) A named list of definitions corresponding to each item type. Used to append conceptual clarity.</p></dd>
+
+
+<dt id="arg-item-attribute-definitions">item.attribute.definitions<a class="anchor" aria-label="anchor" href="#arg-item-attribute-definitions"></a></dt>
+<dd><p>(Optional) A named list of definitions for some or all attributes. Definitions for an
+item type's attributes are appended after the item type definition, if not already present.</p></dd>
 
 
 <dt id="arg-domain">domain<a class="anchor" aria-label="anchor" href="#arg-domain"></a></dt>

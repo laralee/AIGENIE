@@ -58,6 +58,7 @@ includes strict formatting requirements, attribute listings, and item-generation
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_main.prompts</span><span class="op">(</span></span>
 <span>  <span class="va">item.attributes</span>,</span>
 <span>  <span class="va">item.type.definitions</span>,</span>
+<span>  item.attribute.definitions <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">domain</span>,</span>
 <span>  <span class="va">scale.title</span>,</span>
 <span>  <span class="va">prompt.notes</span>,</span>
@@ -76,6 +77,11 @@ includes strict formatting requirements, attribute listings, and item-generation
 
 <dt id="arg-item-type-definitions">item.type.definitions<a class="anchor" aria-label="anchor" href="#arg-item-type-definitions"></a></dt>
 <dd><p>(Optional) A named list of textual definitions for each item type, used to provide conceptual clarity in the prompt.</p></dd>
+
+
+<dt id="arg-item-attribute-definitions">item.attribute.definitions<a class="anchor" aria-label="anchor" href="#arg-item-attribute-definitions"></a></dt>
+<dd><p>(Optional) A named list of textual definitions for some or all attributes. Definitions
+for an item type's attributes are inserted immediately after that type's attribute list.</p></dd>
 
 
 <dt id="arg-domain">domain<a class="anchor" aria-label="anchor" href="#arg-domain"></a></dt>

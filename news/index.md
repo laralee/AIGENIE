@@ -20,19 +20,9 @@ CRAN release: 2026-09-08
   [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md),
   [`local_AIGENIE()`](https://laralee.github.io/AIGENIE/reference/local_AIGENIE.md),
   [`chat()`](https://laralee.github.io/AIGENIE/reference/chat.md), and
-  [`local_chat()`](https://laralee.github.io/AIGENIE/reference/local_chat.md).
-  When `NULL`, they are not sent to the model, so the provider’s (or
-  llama.cpp’s) own defaults apply. Many recent models reject these
-  parameters. API calls with the new defaults sample as before for
-  models that accept them (providers default both to 1); local models
-  now use llama.cpp’s defaults instead of 1.
-- Setting `temperature` or `top.p` for an API model now issues a
-  warning, plus a separate warning when both are set for an Anthropic
-  model.
-- API errors that mention `temperature` or `top_p` now include a hint to
-  leave them as `NULL`, and item generation and
-  [`chat()`](https://laralee.github.io/AIGENIE/reference/chat.md) stop
-  on the first such error instead of retrying.
+  [`local_chat()`](https://laralee.github.io/AIGENIE/reference/local_chat.md)
+  because many recent models reject these parameters. When `NULL`, they
+  are not sent to the model, so the defaults apply.
 - Exposed `boot.iter` and `ncores` in
   [`AIGENIE()`](https://laralee.github.io/AIGENIE/reference/AIGENIE.md),
   [`GENIE()`](https://laralee.github.io/AIGENIE/reference/GENIE.md),

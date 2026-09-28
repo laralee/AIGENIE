@@ -964,7 +964,7 @@ print_results<-function(obj, obj2, run.overall){
     cat(paste("                          ", words))
     cat("\n")
     cat(paste("EGA Model:", EGA.model,"    Embeddings Used:", embedding_type,
-              "    Staring N:", initial_items, "    Final N:", final_items))
+              "    Starting N:", initial_items, "    Final N:", final_items))
     cat("\n")
     cat(paste0("             Initial NMI: ", round(before_nmi,4) * 100,
                "           Final NMI: ", round(after_genie,4) * 100))
@@ -985,7 +985,7 @@ print_results<-function(obj, obj2, run.overall){
     cat(paste("                          Overall Sample Results"))
     cat("\n")
     cat(paste("EGA Model:", EGA.model,"    Embeddings Used:", embedding_type,
-              "    Staring N:", initial_items, "    Final N:", final_items))
+              "    Starting N:", initial_items, "    Final N:", final_items))
     cat("\n")
     cat(paste0("             Initial NMI: ", round(before_nmi,4) * 100,
                "           Final NMI: ", round(after_genie,4) * 100))

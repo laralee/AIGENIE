@@ -1,10 +1,16 @@
 <img src="inst/AIGENIE_hex.png" align="right" width="180"/>
 
 <div id="badges">
+<a href="https://CRAN.R-project.org/package=AIGENIE"><img border="0" src="https://www.r-pkg.org/badges/version/AIGENIE?color=green" alt="CRAN version"/></a>
 <a href="https://laralee.r-universe.dev/AIGENIE"><img src="https://laralee.r-universe.dev/badges/AIGENIE" alt="r-universe version"/></a>
 <a href="https://github.com/laralee/AIGENIE/releases"><img src="https://img.shields.io/github/v/release/laralee/AIGENIE" alt="GitHub version"/></a>
 <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active"/></a>
 <a href="https://github.com/laralee/AIGENIE"><img src="https://img.shields.io/github/last-commit/laralee/AIGENIE" alt="Last commit"/></a>
+
+<a href="https://www.generativepsychometrics.com"><img border="0" src="https://cranlogs.r-pkg.org/badges/grand-total/AIGENIE?color=blue" alt="Downloads Total"/></a>
+<a href="https://www.generativepsychometrics.com"><img border="0" src="http://cranlogs.r-pkg.org/badges/AIGENIE?color=blue" alt="Downloads per month"/></a>
+<a href="https://www.generativepsychometrics.com"><img border="0" src="http://cranlogs.r-pkg.org/badges/last-day/AIGENIE" alt="Downloads Yesterday"/></a>
+
 
 </div>
 
